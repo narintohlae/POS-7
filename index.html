@@ -753,7 +753,7 @@
             
             <div class="totals-section">
                 <div class="total-row"><label>ยอดรวม:</label><span id="cart-subtotal">0.00</span></div>
-                <div class="total-row"><label for="discount-input">ส่วนลด (บาท):</label><input type="number" id="discount-input" placeholder="0.00"></div>
+                <div class="total-row"><label for="discount-input">ส่วนลด (บาท):</label><input type="number" id="discount-input" placeholder="0.00" step="any"></div>
                 <div class="total-row" style="font-size: 1.5em; color: var(--success-color);"><label>ยอดสุทธิ:</label><span id="cart-total">0.00</span></div>
             </div>
             <div class="button-group-2">
@@ -1622,7 +1622,7 @@ const POS_APP = {
             <div class="pricing-unit-grid">
                 <div class="form-group"> <label>ชื่อหน่วย</label> <input type="text" data-field="unitName" placeholder="เช่น ชิ้น, แพ็ค" value="${unitData?.unitName || ''}" required> </div>
                 <div class="form-group"> <label>บาร์โค้ด (ถ้ามี)</label> <input type="text" data-field="barcode" value="${unitData?.barcode || ''}"> </div>
-                <div class="form-group"> <label>ต้นทุน/หน่วยนี้</label> <input type="number" step="0.01" data-field="cost" value="${unitData?.cost || 0}"> </div>
+                <div class="form-group"> <label>ต้นทุน/หน่วยนี้</label> <input type="number" step="any" data-field="cost" value="${unitData?.cost || 0}"> </div>
                 <div class="form-group"> <label>ตัวคูณ (เทียบกับหน่วยเล็ก)</label> <input type="number" step="1" data-field="conversionFactor" placeholder="1 แพ็ค = 6 ชิ้น (ใส่ 6)" value="${unitData?.conversionFactor || 1}" required> </div>
             </div>
             <div class="price-tiers-container">
@@ -2533,4 +2533,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 </body>
+
 </html>
