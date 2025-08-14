@@ -36,13 +36,15 @@
         }
 
         .app-layout {
-            display: flex;
+            display: grid;
+            grid-template-columns: 10% 25% 65%;
             height: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         /* --- Sidebar --- */
         #app-sidebar {
-            width: 10%; 
             background-color: var(--white-color);
             border-right: 1px solid var(--border-color);
             padding: var(--gap) 0;
@@ -84,21 +86,12 @@
             color: var(--primary-color);
         }
 
-        /* --- Main Content --- */
-        #main-pos-layout {
-            width: 90%; 
-            display: flex;
-            gap: var(--gap);
+        /* --- Main Content Columns --- */
+        .search-column, .cart-column {
             padding: var(--gap);
+            height: 100vh;
             box-sizing: border-box;
-            height: 100%;
-        }
-
-        .search-column {
-            width: calc(20% / 90% * 100%);
-        }
-        .cart-column {
-            width: calc(70% / 90% * 100%);
+            display: flex; /* Use flexbox for the card itself */
         }
         
         .card {
@@ -109,6 +102,7 @@
             display: flex;
             flex-direction: column;
             border: 1px solid var(--border-color);
+            width: 100%;
             height: 100%;
             box-sizing: border-box;
             overflow: hidden;
@@ -262,18 +256,17 @@
         /* Responsive */
         @media (max-width: 992px) {
             body { overflow: auto; height: auto; }
-            .app-layout { flex-direction: column; height: auto; }
+            .app-layout { display: block; }
             #app-sidebar { width: 100%; flex-direction: row; justify-content: space-around; padding: 0.5rem 0; border-right: none; border-top: 1px solid var(--border-color); position: fixed; bottom: 0; left: 0; z-index: 100; height: 65px; }
             .sidebar-btn { width: auto; flex-grow: 1; }
             .sidebar-btn span { font-size: 0.8em; }
             .sidebar-btn svg { width: 24px; height: 24px; }
-            #main-pos-layout { width: 100%; padding-bottom: 80px; flex-direction: column; }
-            .search-column, .cart-column { width: 100%; min-height: 450px; }
+            .search-column, .cart-column { width: 100%; min-height: 450px; padding: var(--gap) var(--gap) 80px var(--gap); }
             #product-editor-modal .form-content-area { grid-template-columns: 1fr; }
             .filter-section { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-            #main-pos-layout { padding: 0.5rem; padding-bottom: 80px; }
+            .search-column, .cart-column { padding: 0.5rem 0.5rem 80px 0.5rem; }
             .card { padding: 1rem; }
             h2, h3 { font-size: 1.25rem; }
             h3 { font-size: 1.1rem; }
@@ -310,8 +303,8 @@
         </button>
     </aside>
 
-    <main id="main-pos-layout">
-        <div class="search-column card">
+    <div class="search-column">
+        <div class="card">
             <h2>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 ค้นหาสินค้า
@@ -322,7 +315,9 @@
             </div>
             <div id="search-results"></div>
         </div>
-        <div class="cart-column card">
+    </div>
+    <div class="cart-column">
+        <div class="card">
             <div class="cart-tabs-container"><div id="cart-tabs"></div></div>
             <div id="edit-status" style="display: none; padding: 10px; background-color: #fff3cd; color: #856404; border-radius: 4px; margin-bottom: 1rem; margin-top:1rem;"></div>
             <div class="cart-header-row" style="margin-top: 1rem;">
@@ -344,7 +339,7 @@
                 <button type="button" class="clear-cart">ล้างตะกร้า (F8)</button>
             </div>
         </div>
-    </main>
+    </div>
 </div>
 
 <!-- Main Page Modals -->
@@ -1858,4 +1853,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-" is select
