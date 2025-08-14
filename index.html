@@ -458,6 +458,9 @@
             padding: 1.5rem 2rem;
             border-top: 1px solid var(--border-color);
             background-color: var(--light-bg);
+            display: flex; /* Changed for pagination */
+            justify-content: flex-end; /* Changed for pagination */
+            align-items: center; /* Changed for pagination */
         }
         .modal-footer .button-group {
             margin-top: 0;
@@ -678,6 +681,49 @@
              margin-top: 1rem;
         }
 
+        /* --- Pagination Styles --- */
+        #product-list-pagination {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pagination-controls button {
+            background-color: var(--white-color);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            height: auto;
+            min-width: 40px;
+        }
+        .pagination-controls button:hover:not(:disabled) {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            filter: brightness(100%);
+        }
+        .pagination-controls button.active {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            font-weight: bold;
+        }
+        .pagination-controls button:disabled {
+            background-color: var(--light-bg);
+            border-color: var(--border-color);
+            color: var(--secondary-color);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .pagination-info {
+            margin: 0 1rem;
+            color: var(--secondary-color);
+            font-size: 0.9em;
+        }
+
+
         /* Responsive */
         @media (max-width: 992px) {
             .pos-layout { grid-template-columns: 1fr; }
@@ -706,6 +752,8 @@
             .col-qty .item-input { width: 50px; }
             .delete-item-btn, .close-tab-btn { width: 30px; height: 30px; font-size: 1.2em; }
             .pricing-unit-grid { grid-template-columns: 1fr; }
+            #product-list-pagination { flex-wrap: wrap; }
+            .pagination-controls button { padding: 0.4rem 0.8rem; }
         }
     </style>
 </head>
@@ -893,6 +941,7 @@
         </div>
         <div id="product-list-container"></div>
         <div class="modal-footer">
+             <div id="product-list-pagination"></div>
              <button type="button" id="close-product-mgmt-btn" style="background-color: var(--secondary-color);">ปิด</button>
         </div>
     </div>
@@ -1017,6 +1066,8 @@ const POS_APP = {
         lastSheetHash: null,
         autoImportInterval: null,
         _costCalculationListener: null,
+        productListPage: 1, // New state for pagination
+        productsPerPage: 10, // New state for pagination
     },
 
     init() {
@@ -1104,6 +1155,7 @@ const POS_APP = {
         document.getElementById('product-list-container').addEventListener('click', this.handleProductListActions.bind(this));
         document.getElementById('product-editor-modal').addEventListener('click', this.handlePricingUnitActions.bind(this));
         document.getElementById('product-search-input').addEventListener('input', (e) => {
+            this.state.productListPage = 1; // Reset to page 1 on new search
             this.renderProductList(e.target.value);
         });
         document.getElementById('auto-import-toggle').addEventListener('change', (e) => {
@@ -1123,6 +1175,17 @@ const POS_APP = {
             e.preventDefault();
             this.confirmSale();
     }
+    });
+    // New Listener for Pagination
+    document.getElementById('product-list-pagination').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (button && button.dataset.page) {
+            const newPage = parseInt(button.dataset.page, 10);
+            if (newPage !== this.state.productListPage) {
+                this.state.productListPage = newPage;
+                this.renderProductList(document.getElementById('product-search-input').value);
+            }
+        }
     });
     },
     
@@ -1483,11 +1546,11 @@ const POS_APP = {
     showProductMgmtModal() { 
         document.getElementById('product-mgmt-modal').style.display = 'flex'; 
         document.getElementById('product-search-input').value = ''; 
+        this.state.productListPage = 1; // Reset to page 1 when opening
         this.renderProductList(); 
     },
     hideProductMgmtModal() { document.getElementById('product-mgmt-modal').style.display = 'none'; },
     
-    // ================== START: MODIFIED FUNCTION ==================
     showProductEditorModal(product = null) {
         this.state.currentEditingProductId = product ? product.id : null;
         const form = document.getElementById('product-editor-form');
@@ -1551,10 +1614,10 @@ const POS_APP = {
         };
         container.addEventListener('input', this.state._costCalculationListener);
     },
-    // =================== END: MODIFIED FUNCTION ===================
 
     hideProductEditorModal() { document.getElementById('product-editor-modal').style.display = 'none'; },
     
+    // ================== START: MODIFIED FUNCTION ==================
     renderProductList(filterText = '') {
         const container = document.getElementById('product-list-container');
         const lowercasedFilter = filterText.toLowerCase().trim();
@@ -1568,13 +1631,19 @@ const POS_APP = {
                 (p.category && p.category.toLowerCase().includes(lowercasedFilter))
             );
         }
+
+        const totalItems = productsToRender.length;
+        const startIndex = (this.state.productListPage - 1) * this.state.productsPerPage;
+        const endIndex = startIndex + this.state.productsPerPage;
+        const paginatedItems = productsToRender.slice(startIndex, endIndex);
         
-        if (productsToRender.length === 0) {
+        if (totalItems === 0) {
              if (lowercasedFilter) {
                  container.innerHTML = '<p style="text-align:center; padding: 2rem;">ไม่พบสินค้าที่ตรงกับคำค้นหา</p>';
              } else {
                  container.innerHTML = '<p style="text-align:center; padding: 2rem;">ยังไม่มีสินค้าในระบบ, กด "เพิ่มสินค้าใหม่" หรือ "นำเข้าข้อมูล" เพื่อเริ่มต้น</p>';
              }
+             this.renderPaginationControls(0); // Clear pagination
              return;
         }
 
@@ -1586,7 +1655,7 @@ const POS_APP = {
                 <span>การกระทำ</span> 
             </div>`;
 
-        const rowsHTML = productsToRender.map(p => `
+        const rowsHTML = paginatedItems.map(p => `
             <div class="product-list-row"> 
                 <div> 
                     <strong>${p.productName}</strong> 
@@ -1602,7 +1671,39 @@ const POS_APP = {
             </div>`).join('');
         
         container.innerHTML = headerHTML + rowsHTML;
+        this.renderPaginationControls(totalItems);
     },
+    // =================== END: MODIFIED FUNCTION ===================
+
+    // ================== START: NEW FUNCTION ==================
+    renderPaginationControls(totalItems) {
+        const paginationContainer = document.getElementById('product-list-pagination');
+        if (!paginationContainer) return;
+
+        if (totalItems <= this.state.productsPerPage) {
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        const totalPages = Math.ceil(totalItems / this.state.productsPerPage);
+        const currentPage = this.state.productListPage;
+
+        let html = '<div class="pagination-controls">';
+        
+        // Previous Button
+        html += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&laquo; ก่อนหน้า</button>`;
+
+        // Page Info
+        html += `<span class="pagination-info">หน้า ${currentPage} / ${totalPages}</span>`;
+
+        // Next Button
+        html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>ถัดไป &raquo;</button>`;
+        
+        html += '</div>';
+
+        paginationContainer.innerHTML = html;
+    },
+    // =================== END: NEW FUNCTION ===================
     
     addPricingUnitRow(unitData = null) {
         const container = document.getElementById('pricing-units-container');
@@ -1650,7 +1751,6 @@ const POS_APP = {
             </div>`;
     },
     
-    // ================== START: MODIFIED FUNCTION ==================
     handleAddPricingUnit() {
         const firstUnitCard = document.querySelector('#pricing-units-container .pricing-unit-card');
         let baseCost = 0;
@@ -1662,7 +1762,6 @@ const POS_APP = {
         }
         this.addPricingUnitRow({ cost: baseCost, conversionFactor: 1 });
     },
-    // =================== END: MODIFIED FUNCTION ===================
 
     handlePricingUnitActions(e) { 
         const button = e.target.closest('button'); 
@@ -2192,7 +2291,6 @@ const POS_APP = {
         } 
     },
     
-    // ================== START: MODIFIED FUNCTION ==================
     updateHistoryDisplay() {
         const historyBody = document.getElementById('history-body');
         const clearHistoryBtn = document.getElementById('clear-all-history-btn');
@@ -2251,7 +2349,6 @@ const POS_APP = {
         // Update summary based on filtered results
         this.calculateSummaryForDisplayedHistory(filteredHistory);
     },
-    // =================== END: MODIFIED FUNCTION ===================
 
     toggleUIVisibility() { 
         const summarySection = document.getElementById('sales-summary-section'); 
@@ -2424,7 +2521,6 @@ const POS_APP = {
             } 
         }); 
     },
-    // ================== START: MODIFIED FUNCTION ==================
     calculateSummaryForDisplayedHistory(displayedSales = []) { 
         let totalSales = 0; 
         let totalDiscount = 0; 
@@ -2451,7 +2547,6 @@ const POS_APP = {
         document.getElementById('summary-bill-count').textContent = billCount.toLocaleString('en-US'); 
         document.getElementById('summary-profit').textContent = formatCurrency(profit); 
     },
-    // =================== END: MODIFIED FUNCTION ===================
     async generateSaleId() { 
         const today = new Date(); 
         const datePrefix = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`; 
