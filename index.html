@@ -441,18 +441,37 @@
 <div id="product-editor-modal" class="modal-overlay"> <div class="modal-content"> <form id="product-editor-form"> <div class="modal-header"><h3 id="product-editor-title">เพิ่มสินค้าใหม่</h3></div> <div class="form-content-area"> <div class="form-column-left"> <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">ข้อมูลสินค้าหลัก</h4> <div class="form-group"> <label for="product-code">รหัสสินค้า (ห้ามซ้ำ)</label> <input type="text" id="product-code" required> </div> <div class="form-group"> <label for="product-name">ชื่อสินค้า</label> <input type="text" id="product-name" required> </div> <div class="form-group"> <label for="product-category">หมวดหมู่ (ไม่บังคับ)</label> <input type="text" id="product-category"> </div> <div class="form-group"> <label for="product-base-unit">หน่วยเล็กที่สุด (สำหรับนับสต็อก)</label> <input type="text" id="product-base-unit" placeholder="เช่น ชิ้น, ขวด, กรัม" required> </div> <div class="form-group"> <label for="product-stock">จำนวนสต็อก (ตามหน่วยเล็กที่สุด)</label> <input type="number" id="product-stock" value="0" required> </div> </div> <div class="form-column-right"> <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">หน่วยและราคาขาย</h4> <div id="pricing-units-container"></div> <button type="button" id="add-pricing-unit-btn"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> เพิ่มหน่วยขาย </button> </div> </div> <div class="modal-footer"> <div class="button-group"> <button type="button" id="cancel-product-editor-btn" style="background-color: var(--secondary-color);">ยกเลิก</button> <button type="submit" id="save-product-btn" class="finish-sale">บันทึกสินค้า</button> </div> </div> </form> </div> </div>
 
 <script type="module">
-    // Firebase Initialization (Secure Method)
+    // Firebase Initialization (Secure Method with Local Fallback)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, addDoc, doc, deleteDoc, writeBatch, getDocs, query, where, setDoc, updateDoc, collectionGroup, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    let firebaseConfig;
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+    // This will be true if the code is running in the intended environment
+    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        firebaseConfig = JSON.parse(__firebase_config);
+    } else {
+        // --- FALLBACK FOR LOCAL DEVELOPMENT ---
+        // IMPORTANT: Replace these placeholder values with your own Firebase project's configuration
+        // to run this file on your local computer. You can find these details in your
+        // Firebase project settings.
+        console.warn("Firebase config not found in environment. Using local fallback. PLEASE REPLACE PLACEHOLDER VALUES.");
+        firebaseConfig = {
+            apiKey: "AIzaSyDOx9RPxrG-vO59QHjkhJtGmyDRhdoVFPY",
+            authDomain: "pos-6-23035.firebaseapp.com",
+            projectId: "pos-6-23035",
+            storageBucket: "pos-6-23035.appspot.com",
+            messagingSenderId: "1025982856125",
+            appId: "1:1025982856125:web:8c6cdf5712e44abe0f30d4"
+        };
+    }
+
     try {
-        if (!firebaseConfig.apiKey) {
-            throw new Error("Firebase configuration is missing.");
+        if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("YOUR_")) {
+            throw new Error("Firebase configuration is missing or contains placeholder values.");
         }
         
         const app = initializeApp(firebaseConfig);
@@ -1839,4 +1858,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-" and want to make some changes to it. I'm thinking of this: "จากโค้ดล่าสุด อยากให้ปรับสีของโปรแกรมให้เป็นโทนสีเขียว-ท
