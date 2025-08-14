@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบขายหน้าร้าน (POS) - อัปเกรดระบบค้นหา</title>
+    <title>ระบบขายหน้าร้าน (POS) - UI ใหม่</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root {
-            --primary-color: #005cbf; /* Refined Blue */
+            --primary-color: #005cbf;
             --secondary-color: #6c757d;
             --success-color: #28a745;
             --danger-color: #dc3545;
@@ -23,6 +23,7 @@
             --border-color: #dee2e6;
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
             --shadow-hover: 0 6px 16px rgba(0,0,0,0.12);
+            --gap: 1.5rem;
         }
 
         body {
@@ -30,32 +31,87 @@
             background-color: var(--light-bg);
             color: var(--dark-text);
             margin: 0;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .body-content {
-            padding: 1.5rem;
+        .app-layout {
+            display: flex;
+            height: 100%;
         }
 
-        .main-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: auto;
+        /* --- Sidebar --- */
+        #app-sidebar {
+            width: 15%;
+            background-color: var(--white-color);
+            border-right: 1px solid var(--border-color);
+            padding: var(--gap) 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
         }
 
+        .sidebar-btn {
+            background-color: transparent;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            transition: background-color 0.2s, color 0.2s;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .sidebar-btn svg {
+            width: 28px;
+            height: 28px;
+            stroke-width: 2;
+        }
+        .sidebar-btn:hover {
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+        }
+        .sidebar-btn.active {
+            background-color: #e7f1ff;
+            color: var(--primary-color);
+        }
+
+        /* --- Main Content --- */
+        #main-pos-layout {
+            width: 85%;
+            display: flex;
+            gap: var(--gap);
+            padding: var(--gap);
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        .search-column {
+            width: calc(25% / 85% * 100%);
+        }
+        .cart-column {
+            width: calc(60% / 85% * 100%);
+        }
+        
         .card {
             background-color: var(--white-color);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
             border: 1px solid var(--border-color);
-            transition: box-shadow 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: var(--shadow-hover);
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         h2, h3 {
@@ -68,674 +124,156 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            flex-shrink: 0;
         }
         
-        h3 {
-            font-size: 1.35rem;
-            margin-bottom: 1.25rem;
-        }
+        h3 { font-size: 1.35rem; margin-bottom: 1.25rem; }
+        h4 { margin: 0; color: var(--dark-text); font-size: 1.2rem; }
         
-        h4 {
-            margin: 0;
-            color: var(--dark-text);
-            font-size: 1.2rem;
-        }
+        .filter-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; align-items: end; margin-bottom: 1.5rem; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { margin-bottom: 0.5rem; font-size: 0.95em; color: var(--secondary-color); font-weight: bold; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1.5rem; text-align: center; }
+        .summary-item { background-color: #f1f3f5; padding: 1.25rem; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .summary-item .label { font-size: 1.05em; color: var(--secondary-color); margin-bottom: 0.5rem; display: block; }
+        .summary-item .value { font-size: 2.2em; font-weight: bold; color: var(--primary-color); }
+
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { font-size: 0.9em; color: var(--secondary-color); display: block; margin-bottom: 0.5rem; }
         
-        .filter-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            align-items: end;
-            margin-bottom: 1.5rem;
-        }
+        .input-with-icon { position: relative; }
+        .input-with-icon .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--secondary-color); pointer-events: none; }
+        .input-with-icon input { padding-left: 40px; }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
+        input, select { width: 100%; padding: 0.8rem 1rem; font-size: 1em; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Sarabun', sans-serif; transition: border-color 0.3s, box-shadow 0.3s; background-color: var(--white-color); height: 44px; }
+        input:disabled { background-color: #e9ecef; cursor: not-allowed; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25); }
+
+        #search-results { margin-top: 1rem; overflow-y: auto; border: 1px solid transparent; border-radius: 8px; flex-grow: 1; min-height: 150px; }
+        #search-results.has-results { border-color: var(--border-color); background: #fff; }
         
-        .filter-group label {
-            margin-bottom: 0.5rem;
-            font-size: 0.95em;
-            color: var(--secondary-color);
-            font-weight: bold;
-        }
-
-        .filter-group-inline {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            height: 44px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1.5rem;
-            text-align: center;
-        }
-        .summary-item {
-            background-color: #f1f3f5;
-            padding: 1.25rem;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-        }
-        .summary-item .label {
-            font-size: 1.05em;
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        .summary-item .value {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .pos-layout {
-            display: grid;
-            grid-template-columns: 1fr 3fr;
-            gap: 2rem;
-        }
-        
-        .search-column, .cart-column {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            font-size: 0.9em;
-            color: var(--secondary-color);
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        
-        .input-with-icon {
-            position: relative;
-        }
-        .input-with-icon .icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--secondary-color);
-            pointer-events: none;
-        }
-        .input-with-icon input {
-            padding-left: 40px;
-        }
-
-        input, select {
-            width: 100%; 
-            padding: 0.8rem 1rem;
-            font-size: 1em;
-            box-sizing: border-box; 
-            border: 1px solid var(--border-color); 
-            border-radius: 8px;
-            font-family: 'Sarabun', sans-serif;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background-color: var(--white-color);
-            height: 44px;
-        }
-        input:disabled {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-
-        input:focus, select:focus {
-            outline: none; border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25);
-        }
-
-        #search-results {
-            margin-top: 1rem;
-            overflow-y: hidden;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            height: 1px;
-            min-height: 1px;
-            transition: all 0.2s ease-in-out;
-            flex-grow: 0;
-        }
-
-        #search-results.has-results {
-            border-color: var(--border-color);
-            min-height: 150px;
-            height: auto;
-            flex-grow: 1;
-            overflow-y: auto;
-            background: #fff;
-        }
-        
-        .search-item {
-            padding: 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .search-item { padding: 1rem; cursor: pointer; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .search-item:last-child { border-bottom: none; }
-        .search-item:hover, .search-item.selected {
-            background-color: var(--primary-color);
-            color: var(--white-color);
-        }
+        .search-item:hover, .search-item.selected { background-color: var(--primary-color); color: var(--white-color); }
         .search-item.selected .price, .search-item.selected .sub-text { color: var(--white-color); }
-        .search-item .sub-text {
-            font-size: 0.85em;
-            color: var(--secondary-color);
-            font-weight: normal;
-        }
-        .search-item .highlight {
-            background-color: var(--warning-color);
-            border-radius: 3px;
-            padding: 0 4px;
-        }
+        .search-item .sub-text { font-size: 0.85em; color: var(--secondary-color); font-weight: normal; }
+        .search-item .highlight { background-color: var(--warning-color); border-radius: 3px; padding: 0 4px; color: var(--dark-text); }
+        .search-item.selected .highlight { background-color: #ffdd72; }
 
-        /* --- Cart Layout --- */
-        .cart-header-row {
-            display: grid;
-            grid-template-columns: 40px 2fr 100px 110px 110px 50px;
-            gap: 1rem;
-            padding: 0 1rem 0.75rem 1rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-            border-bottom: 2px solid var(--border-color);
-            align-items: center;
-            text-align: center;
-        }
-        
+        .cart-header-row { display: grid; grid-template-columns: 40px 2fr 100px 110px 110px 50px; gap: 1rem; padding: 0 1rem 0.75rem 1rem; font-weight: bold; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); align-items: center; text-align: center; flex-shrink: 0; }
         .cart-header-row .col-name { text-align: left; }
         .cart-header-row .col-right { text-align: right; }
         
-        #cart-items {
-            list-style-type: none;
-            padding: 0;
-            overflow-y: auto;
-            min-height: 300px;
-            margin-top: 0.5rem;
-            flex-grow: 1;
-        }
-
-        #cart-items li {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            display: grid;
-            grid-template-columns: 40px 2fr 100px 110px 110px 50px;
-            align-items: center; 
-            gap: 1rem;
-            font-size: 0.95em;
-            transition: background-color 0.2s;
-            border: 1px solid transparent;
-        }
-        
-        #cart-items li:nth-child(even) {
-            background-color: #f8f9fa; 
-        }
-
-        #cart-items li:hover {
-            background-color: #e9ecef;
-            border-color: var(--border-color);
-        }
-        
+        #cart-items { list-style-type: none; padding: 0; overflow-y: auto; margin-top: 0.5rem; flex-grow: 1; }
+        #cart-items li { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: grid; grid-template-columns: 40px 2fr 100px 110px 110px 50px; align-items: center; gap: 1rem; font-size: 0.95em; transition: background-color 0.2s; border: 1px solid transparent; }
+        #cart-items li:nth-child(even) { background-color: #f8f9fa; }
+        #cart-items li:hover { background-color: #e9ecef; border-color: var(--border-color); }
         #cart-items .col-name { text-align: left; }
-        #cart-items .col-seq,
-        #cart-items .col-delete { text-align: center; }
-        #cart-items .col-price,
-        #cart-items .col-total { text-align: right; }
+        #cart-items .col-seq, #cart-items .col-delete { text-align: center; }
+        #cart-items .col-price, #cart-items .col-total { text-align: right; }
 
-        .item-input {
-            text-align: right;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 1em;
-            background-color: var(--white-color);
-            width: 100%;
-            box-sizing: border-box;
-            -moz-appearance: textfield;
-        }
-        .item-input::-webkit-outer-spin-button,
-        .item-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        .col-qty .item-input {
-            width: 70px;
-            text-align: center;
-            margin: auto;
-        }
+        .item-input { text-align: right; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; font-size: 1em; background-color: var(--white-color); width: 100%; box-sizing: border-box; -moz-appearance: textfield; }
+        .item-input::-webkit-outer-spin-button, .item-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .col-qty .item-input { width: 70px; text-align: center; margin: auto; }
 
-        .delete-item-btn {
-            background: transparent;
-            border: none;
-            color: var(--danger-color);
-            cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s, background-color 0.2s;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-        }
+        .delete-item-btn { background: transparent; border: none; color: var(--danger-color); cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background-color 0.2s; border-radius: 50%; width: 36px; height: 36px; }
+        .delete-item-btn:hover { transform: scale(1.1); background-color: #fce8e6; }
+        .delete-item-btn svg { width: 20px; height: 20px; }
 
-        .delete-item-btn:hover {
-            transform: scale(1.1);
-            background-color: #fce8e6;
-        }
-
-        .delete-item-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .totals-section {
-            padding-top: 1.5rem;
-            border-top: 2px solid var(--border-color);
-            margin-top: auto;
-        }
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.25em;
-            margin-bottom: 1rem;
-            align-items: center;
-        }
-        .total-row label, .total-row span {
-            font-weight: bold;
-        }
-        #discount-input {
-            width: 130px;
-            font-size: 1em;
-            text-align: right;
-        }
-        #cart-total {
-            color: var(--success-color);
-            font-size: 1.7em;
-        }
+        .totals-section { padding-top: 1.5rem; border-top: 2px solid var(--border-color); margin-top: auto; flex-shrink: 0; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.25em; margin-bottom: 1rem; align-items: center; }
+        .total-row label, .total-row span { font-weight: bold; }
+        #discount-input { width: 130px; font-size: 1em; text-align: right; }
+        #cart-total { color: var(--success-color); font-size: 1.7em; }
 
         .button-group { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        .button-group-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .button-group-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; flex-shrink: 0; }
 
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.05em;
-            font-family: 'Sarabun', sans-serif;
-            transition: background-color 0.3s, transform 0.1s, filter 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: 1px solid transparent;
-            height: 44px;
-            font-weight: bold;
-        }
-        
-        button:hover {
-            filter: brightness(115%);
-        }
-
-        button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-            filter: grayscale(50%);
-        }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 1.05em; font-family: 'Sarabun', sans-serif; transition: background-color 0.3s, transform 0.1s, filter 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; height: 44px; font-weight: bold; }
+        button:hover { filter: brightness(115%); }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; filter: grayscale(50%); }
         button:active { transform: scale(0.98); }
         button.finish-sale { background-color: var(--success-color); border-color: var(--success-color); }
         button.clear-cart { background-color: var(--danger-color); border-color: var(--danger-color); }
-        .delete-history-btn {
-            background-color: var(--danger-color); padding: 0.25rem 0.75rem; font-size: 0.9em;
-        }
-        .edit-history-btn {
-            background-color: var(--info-color); padding: 0.25rem 0.75rem;
-            font-size: 0.9em; margin-right: 5px;
-        }
+        .delete-history-btn { background-color: var(--danger-color); padding: 0.25rem 0.75rem; font-size: 0.9em; }
+        .edit-history-btn { background-color: var(--info-color); padding: 0.25rem 0.75rem; font-size: 0.9em; margin-right: 5px; }
         
-        #history-table-wrapper {
-            max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color);
-            border-radius: 8px;
-        }
+        #history-table-wrapper { flex-grow: 1; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         #history-table { width: 100%; border-collapse: collapse; }
-        #history-table th, #history-table td { 
-            border-bottom: 1px solid var(--border-color); padding: 1rem;
-            text-align: left; vertical-align: middle;
-        }
+        #history-table th, #history-table td { border-bottom: 1px solid var(--border-color); padding: 1rem; text-align: left; vertical-align: middle; }
         #history-table th { background-color: #f1f3f5; position: sticky; top: 0; z-index: 10; font-weight: bold; }
         #history-table tr:nth-child(even) { background-color: var(--light-bg); }
         #history-table tr:hover { background-color: #e9f5ff; }
+        #history-table tr.exported-row { background-color: #f1f8e9; opacity: 0.8; }
+        #history-table tr.exported-row:hover { opacity: 1; }
+        #history-table tr.exported-row td { color: #555; }
 
-
-        #history-table tr.exported-row {
-            background-color: #f1f8e9;
-            opacity: 0.8;
-        }
-        #history-table tr.exported-row:hover {
-            opacity: 1;
-        }
-        #history-table tr.exported-row td {
-            color: #555;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6); display: none;
-            justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background-color: var(--white-color); border-radius: 12px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.3); width: 90%; max-width: 550px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
-        .modal-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .modal-header h3 {
-             margin: 0;
-             border: none;
-        }
-        .modal-body {
-            padding: 2rem;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        .modal-footer {
-            padding: 1.5rem 2rem;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--light-bg);
-            display: flex; /* Changed for pagination */
-            justify-content: flex-end; /* Changed for pagination */
-            align-items: center; /* Changed for pagination */
-        }
-        .modal-footer .button-group {
-            margin-top: 0;
-            justify-content: flex-end;
-        }
-        .modal-content p {
-            white-space: pre-wrap;
-            text-align: left;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        
-        .payment-modal-body {
-            width: 100%;
-        }
-        .payment-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .payment-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        .payment-label {
-            font-size: 1.6em;
-            color: var(--secondary-color);
-        }
-        .payment-amount {
-            font-weight: bold;
-        }
-        #payment-total-final {
-            font-size: 2.8em;
-            color: var(--primary-color);
-        }
-        #cash-received-input {
-            font-size: 2.2em;
-            text-align: right;
-            width: 50%;
-        }
-        #payment-change {
-            font-size: 3.2em;
-            color: var(--success-color);
-        }
-
-        /* Tabs System */
-        .cart-tabs-container {
-            display: flex;
-            align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            margin-bottom: 1rem;
-        }
-        #cart-tabs {
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 2px;
-        }
-        .tab-button {
-            padding: 0.8rem 1.2rem;
-            cursor: pointer;
-            background-color: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            font-size: 1em;
-            color: var(--secondary-color);
-            position: relative;
-            flex-shrink: 0;
-            transition: color 0.3s, border-color 0.3s;
-        }
-        .tab-button.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-            font-weight: bold;
-        }
-        .close-tab-btn {
-            background: none;
-            border: none;
-            color: inherit;
-            font-size: 1.3em;
-            padding: 0 0 0 0.75rem;
-            line-height: 1;
-            opacity: 0.5;
-            border-radius: 50%;
-        }
-        .close-tab-btn:hover {
-            opacity: 1;
-            background-color: rgba(0,0,0,0.1);
-        }
-
-        /* --- Product Management Styles --- */
-        #product-mgmt-modal .modal-content {
-            max-width: 95vw;
-            width: 1200px;
-            height: 90vh;
-            padding: 0;
-        }
-        .modal-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .modal-toolbar h2 {
-            margin: 0;
-            border: none;
-            font-size: 1.6rem;
-        }
-        #product-list-container {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        .product-list-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 150px;
-            gap: 1.5rem;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-            transition: background-color 0.2s;
-        }
-        .product-list-row:last-child {
-            border-bottom: none;
-        }
-        .product-list-row.product-list-header {
-            background-color: var(--light-bg);
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        .product-list-row:not(.product-list-header):hover {
-            background-color: #e9f5ff;
-        }
-        
-        /* --- Product Editor Modal (Improved) --- */
-        #product-editor-modal .modal-content {
-            max-width: 1200px;
-            width: 90vw;
-            height: 85vh;
-            padding: 0;
-        }
-        
-        #product-editor-form {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            height: 100%;
-        }
-        .form-content-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-        }
-        .form-column-left, .form-column-right {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .pricing-unit-card {
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            background-color: #fdfdfd;
-        }
-        .pricing-unit-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .pricing-unit-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-        #pricing-units-container {
-            flex-grow: 1;
-        }
-        .price-tiers-container {
-            margin-top: 1.5rem;
-        }
-        .price-tier-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr 40px;
-            gap: 0.75rem;
-            font-size: 0.85em;
-            color: var(--secondary-color);
-            padding: 0 4px;
-            margin-bottom: 0.5rem;
-        }
-        .price-tier-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 40px;
-            gap: 0.75rem;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-        .add-tier-btn {
-            padding: 0.6rem;
-            font-size: 0.9em;
-            background-color: var(--secondary-color);
-        }
-        #add-pricing-unit-btn {
-             background-color: var(--info-color);
-             margin-top: 1rem;
-        }
-
-        /* --- Pagination Styles --- */
-        #product-list-pagination {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .pagination-controls button {
-            background-color: var(--white-color);
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            height: auto;
-            min-width: 40px;
-        }
-        .pagination-controls button:hover:not(:disabled) {
-            background-color: var(--primary-color);
-            color: var(--white-color);
-            filter: brightness(100%);
-        }
-        .pagination-controls button.active {
-            background-color: var(--primary-color);
-            color: var(--white-color);
-            font-weight: bold;
-        }
-        .pagination-controls button:disabled {
-            background-color: var(--light-bg);
-            border-color: var(--border-color);
-            color: var(--secondary-color);
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .pagination-info {
-            margin: 0 1rem;
-            color: var(--secondary-color);
-            font-size: 0.9em;
-        }
-
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: var(--white-color); border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.3); width: 90%; max-width: 550px; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { margin: 0; border: none; }
+        .modal-body { padding: 2rem; flex-grow: 1; overflow-y: auto; }
+        .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); background-color: var(--light-bg); display: flex; justify-content: flex-end; align-items: center; }
+        .modal-footer .button-group { margin-top: 0; justify-content: flex-end; }
+        .modal-content p { white-space: pre-wrap; text-align: left; margin-bottom: 1.5rem; line-height: 1.6; }
+        .payment-modal-body { width: 100%; }
+        .payment-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
+        .payment-row:last-child { border-bottom: none; margin-bottom: 0; }
+        .payment-label { font-size: 1.6em; color: var(--secondary-color); }
+        .payment-amount { font-weight: bold; }
+        #payment-total-final { font-size: 2.8em; color: var(--primary-color); }
+        #cash-received-input { font-size: 2.2em; text-align: right; width: 50%; }
+        #payment-change { font-size: 3.2em; color: var(--success-color); }
+        .cart-tabs-container { display: flex; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 1rem; flex-shrink: 0; }
+        #cart-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+        .tab-button { padding: 0.8rem 1.2rem; cursor: pointer; background-color: transparent; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; font-size: 1em; color: var(--secondary-color); position: relative; flex-shrink: 0; transition: color 0.3s, border-color 0.3s; }
+        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: bold; }
+        .close-tab-btn { background: none; border: none; color: inherit; font-size: 1.3em; padding: 0 0 0 0.75rem; line-height: 1; opacity: 0.5; border-radius: 50%; }
+        .close-tab-btn:hover { opacity: 1; background-color: rgba(0,0,0,0.1); }
+        #product-mgmt-modal .modal-content, #history-modal .modal-content, #settings-modal .modal-content { max-width: 90vw; width: 1200px; height: 90vh; }
+        .modal-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-toolbar h2 { margin: 0; border: none; font-size: 1.6rem; }
+        #product-list-container { flex-grow: 1; overflow-y: auto; }
+        .product-list-row { display: grid; grid-template-columns: 2fr 1fr 1.5fr 150px; gap: 1.5rem; padding: 1rem 2rem; border-bottom: 1px solid var(--border-color); align-items: center; transition: background-color 0.2s; }
+        .product-list-row:last-child { border-bottom: none; }
+        .product-list-row.product-list-header { background-color: var(--light-bg); font-weight: bold; position: sticky; top: 0; z-index: 1; }
+        .product-list-row:not(.product-list-header):hover { background-color: #e9f5ff; }
+        #product-editor-modal .modal-content { max-width: 1200px; width: 90vw; height: 85vh; padding: 0; }
+        #product-editor-form { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+        .form-content-area { flex-grow: 1; overflow-y: auto; padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+        .form-column-left, .form-column-right { display: flex; flex-direction: column; }
+        .pricing-unit-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; background-color: #fdfdfd; }
+        .pricing-unit-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .pricing-unit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        #pricing-units-container { flex-grow: 1; }
+        .price-tiers-container { margin-top: 1.5rem; }
+        .price-tier-header { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 0.75rem; font-size: 0.85em; color: var(--secondary-color); padding: 0 4px; margin-bottom: 0.5rem; }
+        .price-tier-row { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+        .add-tier-btn { padding: 0.6rem; font-size: 0.9em; background-color: var(--secondary-color); }
+        #add-pricing-unit-btn { background-color: var(--info-color); margin-top: 1rem; }
+        #product-list-pagination { flex-grow: 1; display: flex; justify-content: center; align-items: center; }
+        .pagination-controls button { background-color: var(--white-color); color: var(--primary-color); border: 1px solid var(--primary-color); padding: 0.5rem 1rem; margin: 0 0.25rem; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, color 0.2s; height: auto; min-width: 40px; }
+        .pagination-controls button:hover:not(:disabled) { background-color: var(--primary-color); color: var(--white-color); filter: brightness(100%); }
+        .pagination-controls button.active { background-color: var(--primary-color); color: var(--white-color); font-weight: bold; }
+        .pagination-controls button:disabled { background-color: var(--light-bg); border-color: var(--border-color); color: var(--secondary-color); cursor: not-allowed; opacity: 0.6; }
+        .pagination-info { margin: 0 1rem; color: var(--secondary-color); font-size: 0.9em; }
 
         /* Responsive */
         @media (max-width: 992px) {
-            .pos-layout { grid-template-columns: 1fr; }
-            #product-editor-modal .form-content-area {
-                grid-template-columns: 1fr;
-            }
-             .filter-section { 
-                grid-template-columns: 1fr; 
-            }
+            body { overflow: auto; height: auto; }
+            .app-layout { flex-direction: column; height: auto; }
+            #app-sidebar { width: 100%; flex-direction: row; justify-content: space-around; padding: 0.5rem 0; border-right: none; border-top: 1px solid var(--border-color); position: fixed; bottom: 0; left: 0; z-index: 100; height: 65px; }
+            .sidebar-btn { width: auto; flex-grow: 1; }
+            .sidebar-btn span { font-size: 0.8em; }
+            .sidebar-btn svg { width: 24px; height: 24px; }
+            #main-pos-layout { width: 100%; padding-bottom: 80px; flex-direction: column; }
+            .search-column, .cart-column { width: 100%; min-height: 450px; }
+            #product-editor-modal .form-content-area { grid-template-columns: 1fr; }
+            .filter-section { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-            .body-content { padding: 0.5rem; }
+            #main-pos-layout { padding: 0.5rem; padding-bottom: 80px; }
             .card { padding: 1rem; }
             h2, h3 { font-size: 1.25rem; }
             h3 { font-size: 1.1rem; }
@@ -745,10 +283,7 @@
             #payment-total-final { font-size: 2em; }
             #cash-received-input { font-size: 1.5em; }
             #payment-change { font-size: 2.2em; }
-            #cart-items li, .cart-header-row {
-                gap: 0.5rem;
-                grid-template-columns: 30px 1.5fr 70px 80px 80px 40px;
-            }
+            #cart-items li, .cart-header-row { gap: 0.5rem; grid-template-columns: 30px 1.5fr 70px 80px 80px 40px; }
             .col-qty .item-input { width: 50px; }
             .delete-item-btn, .close-tab-btn { width: 30px; height: 30px; font-size: 1.2em; }
             .pricing-unit-grid { grid-template-columns: 1fr; }
@@ -758,11 +293,25 @@
     </style>
 </head>
 <body>
-<div class="body-content">
-<main class="main-container">
-<section class="card">
-    <div class="pos-layout">
-        <div class="search-column">
+
+<div class="app-layout">
+    <aside id="app-sidebar">
+        <button class="sidebar-btn active" data-view="pos" title="หน้าขาย (POS)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span>หน้าขาย</span>
+        </button>
+        <button class="sidebar-btn" data-view="history" title="ประวัติการขาย">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            <span>ประวัติ</span>
+        </button>
+        <button class="sidebar-btn" data-view="settings" title="จัดการสินค้าและตั้งค่า">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span>จัดการ</span>
+        </button>
+    </aside>
+
+    <main id="main-pos-layout">
+        <div class="search-column card">
             <h2>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 ค้นหาสินค้า
@@ -772,22 +321,10 @@
                 <input type="text" id="barcode-input" inputmode="latin" placeholder="[ENG] ค้นหา... (เช่น: 31234.)" data-base-placeholder="ค้นหา... (เช่น: 31234.)" autofocus>
             </div>
             <div id="search-results"></div>
-
-            <div id="sales-summary-section" style="margin-top: 1.5rem; display: none;">
-                <h3 id="summary-title">สรุปยอดขาย</h3>
-                <div class="summary-grid">
-                    <div class="summary-item"><div class="label">ยอดขายรวม</div><div class="value" id="summary-total-sales">0.00</div></div>
-                    <div class="summary-item"><div class="label">ส่วนลดรวม</div><div class="value" id="summary-total-discount" style="color: var(--warning-color);">0.00</div></div>
-                    <div class="summary-item"><div class="label">ยอดขายสุทธิ</div><div class="value" id="summary-net-sales" style="color: var(--success-color);">0.00</div></div>
-                    <div class="summary-item"><div class="label">กำไร</div><div class="value" id="summary-profit" style="color: #00aaff;">0.00</div></div>
-                    <div class="summary-item"><div class="label">จำนวนบิล</div><div class="value" id="summary-bill-count">0</div></div>
-                </div>
-            </div>
         </div>
-        <div class="cart-column">
+        <div class="cart-column card">
             <div class="cart-tabs-container"><div id="cart-tabs"></div></div>
             <div id="edit-status" style="display: none; padding: 10px; background-color: #fff3cd; color: #856404; border-radius: 4px; margin-bottom: 1rem; margin-top:1rem;"></div>
-            
             <div class="cart-header-row" style="margin-top: 1rem;">
                 <span class="col-seq">#</span>
                 <span class="col-name">สินค้า</span>
@@ -796,9 +333,7 @@
                 <span class="col-total col-right">รวม</span>
                 <span class="col-delete">ลบ</span>
             </div>
-            
             <ul id="cart-items"></ul>
-            
             <div class="totals-section">
                 <div class="total-row"><label>ยอดรวม:</label><span id="cart-subtotal">0.00</span></div>
                 <div class="total-row"><label for="discount-input">ส่วนลด (บาท):</label><input type="number" id="discount-input" placeholder="0.00" step="any"></div>
@@ -809,236 +344,148 @@
                 <button type="button" class="clear-cart">ล้างตะกร้า (F8)</button>
             </div>
         </div>
-    </div>
-</section>
+    </main>
+</div>
 
-<section class="card">
-    <h2>การตั้งค่าและจัดการ</h2>
-    <div class="button-group">
-        <button type="button" id="manage-products-btn" style="background-color: var(--info-color);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            จัดการสินค้า
-        </button>
-        <button type="button" id="import-from-sheet-btn" style="background-color: var(--success-color);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-            นำเข้า/อัปเดตจาก Google Sheet
-        </button>
-    </div>
-    <div style="margin-top: 1rem; display: flex; align-items: center;">
-        <input type="checkbox" id="auto-import-toggle" style="width: auto; margin-right: 0.5rem;" checked>
-        <label for="auto-import-toggle">นำเข้าข้อมูลอัตโนมัติเมื่อมีการเปลี่ยนแปลง (ตรวจสอบทุก 5 นาที)</label>
-    </div>
-</section>
-
-<section class="card">
-    <h2>ประวัติการขาย</h2>
-    <div class="filter-section">
-        <div class="filter-group">
-            <label for="history-search-input">ค้นหาบิล / สินค้า</label>
-            <div class="input-with-icon">
-                 <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-                 <input type="text" id="history-search-input" placeholder="รหัสการขาย หรือชื่อสินค้า...">
-            </div>
-        </div>
-
-        <div class="filter-group">
-            <label for="start-date">ช่วงวันที่</label>
-            <div style="display: flex; gap: 0.5rem;">
-                <input type="date" id="start-date" title="วันที่เริ่มต้น">
-                <input type="date" id="end-date" title="วันที่สิ้นสุด">
-            </div>
-        </div>
-
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <div style="display: flex; gap: 0.5rem;">
-                <button type="button" id="filter-history-btn" style="width: 100%;">ค้นหา</button>
-                <button type="button" id="today-history-btn" style="background-color: var(--info-color); width: 100%;">วันนี้</button>
-            </div>
-        </div>
-    </div>
-    <div class="button-group" style="justify-content: flex-start; margin-bottom: 1rem; margin-top:0;">
-        <button type="button" id="export-excel-btn">Export to Excel</button>
-        <button type="button" id="clear-all-history-btn" class="clear-cart" style="flex-grow: 0; margin-left: auto;">ล้างประวัติทั้งหมด</button>
-    </div>
-    <div id="history-table-wrapper">
-        <table id="history-table">
-            <thead><tr><th>วันที่/เวลา</th><th>รหัสการขาย</th><th>รายการสินค้า (จำนวน)</th><th>ส่วนลด</th><th>ยอดรวมสุทธิ</th><th>การกระทำ</th></tr></thead>
-            <tbody id="history-body"></tbody>
-        </table>
-    </div>
-</section>
-</main>
-
-<div id="payment-modal" class="modal-overlay">
+<!-- Main Page Modals -->
+<div id="history-modal" class="modal-overlay">
     <div class="modal-content">
-        <div class="modal-header"><h3>ชำระเงิน</h3></div>
+        <div class="modal-body" style="display: flex; flex-direction: column;">
+            <section class="card" style="height: 100%; box-shadow: none; border: none; padding: 0;">
+                <h2>ประวัติการขาย</h2>
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label for="history-search-input">ค้นหาบิล / สินค้า</label>
+                        <div class="input-with-icon">
+                             <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+                             <input type="text" id="history-search-input" placeholder="รหัสการขาย หรือชื่อสินค้า...">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="start-date">ช่วงวันที่</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="date" id="start-date" title="วันที่เริ่มต้น">
+                            <input type="date" id="end-date" title="วันที่สิ้นสุด">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" id="filter-history-btn" style="width: 100%;">ค้นหา</button>
+                            <button type="button" id="today-history-btn" style="background-color: var(--info-color); width: 100%;">วันนี้</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-group" style="justify-content: flex-start; margin-bottom: 1rem; margin-top:0;">
+                    <button type="button" id="export-excel-btn">Export to Excel</button>
+                    <button type="button" id="clear-all-history-btn" class="clear-cart" style="flex-grow: 0; margin-left: auto;">ล้างประวัติทั้งหมด</button>
+                </div>
+                <div id="history-table-wrapper">
+                    <table id="history-table">
+                        <thead><tr><th>วันที่/เวลา</th><th>รหัสการขาย</th><th>รายการสินค้า (จำนวน)</th><th>ส่วนลด</th><th>ยอดรวมสุทธิ</th><th>การกระทำ</th></tr></thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+                 <div id="sales-summary-section" style="margin-top: 1.5rem; display:none;">
+                    <h3 id="summary-title">สรุปยอดขาย</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item"><div class="label">ยอดขายรวม</div><div class="value" id="summary-total-sales">0.00</div></div>
+                        <div class="summary-item"><div class="label">ส่วนลดรวม</div><div class="value" id="summary-total-discount" style="color: var(--warning-color);">0.00</div></div>
+                        <div class="summary-item"><div class="label">ยอดขายสุทธิ</div><div class="value" id="summary-net-sales" style="color: var(--success-color);">0.00</div></div>
+                        <div class="summary-item"><div class="label">กำไร</div><div class="value" id="summary-profit" style="color: #00aaff;">0.00</div></div>
+                        <div class="summary-item"><div class="label">จำนวนบิล</div><div class="value" id="summary-bill-count">0</div></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="close-main-modal-btn" style="background-color: var(--secondary-color);">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+    <div class="modal-content">
         <div class="modal-body">
-            <div class="payment-modal-body">
-                <div class="payment-row"><span class="payment-label">ยอดสุทธิ</span><span class="payment-amount" id="payment-total-final">0.00</span></div>
-                <div class="payment-row"><label for="cash-received-input" class="payment-label">รับเงินมา</label><input type="number" id="cash-received-input" step="any" placeholder="0.00"></div>
-                <div class="payment-row"><span class="payment-label">เงินทอน</span><span class="payment-amount" id="payment-change">0.00</span></div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <div class="button-group">
-                <button type="button" id="cancel-payment-btn" style="background-color:var(--secondary-color)">ยกเลิก (ESC)</button>
-                <button type="button" id="confirm-sale-btn" class="finish-sale">ยืนยันการขาย (Enter)</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="delete-confirm-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header"><h3 style="color:var(--danger-color)">ยืนยันการลบ</h3></div>
-        <div class="modal-body"><p id="delete-confirm-text"></p></div>
-        <div class="modal-footer">
-            <div class="button-group">
-                <button type="button" id="cancel-delete-btn" style="background-color:var(--secondary-color)">ยกเลิก</button>
-                <button type="button" id="confirm-delete-btn" class="clear-cart">ยืนยันการลบ</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="clear-options-modal" class="modal-overlay">
-    <div class="modal-content">
-         <div class="modal-header"><h3>เลือกวิธีการล้างประวัติ</h3></div>
-         <div class="modal-body">
-               <p>คุณต้องการล้างประวัติการขายแบบใด?</p>
-               <div class="button-group" style="flex-direction: column; gap: 1rem;">
-                     <button type="button" id="clear-local-btn" class="clear-cart" style="background-color: var(--info-color);">ล้างเฉพาะหน้าเว็บนี้</button>
-                     <button type="button" id="clear-db-btn" class="clear-cart">ล้างจากฐานข้อมูล (ถาวร)</button>
-               </div>
-         </div>
-         <div class="modal-footer">
-               <button type="button" id="cancel-clear-btn" style="background-color: var(--secondary-color);">ยกเลิก</button>
-         </div>
-    </div>
-</div>
-
-<div id="info-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header"><h3 id="info-modal-title" style="color: var(--primary-color);"></h3></div>
-        <div class="modal-body"><p id="info-modal-text"></p></div>
-        <div class="modal-footer" style="justify-content:center"><button type="button" id="info-modal-ok-btn">ตกลง (Enter/ESC)</button></div>
-    </div>
-</div>
-
-<div id="product-mgmt-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-toolbar">
-            <h2>จัดการสินค้า</h2>
-            <div class="input-with-icon" style="width: 300px;">
-                 <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-                 <input type="text" id="product-search-input" placeholder="ค้นหาสินค้า...">
-            </div>
-            <button type="button" id="add-new-product-btn" class="finish-sale">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                เพิ่มสินค้าใหม่
-            </button>
-        </div>
-        <div id="product-list-container"></div>
-        <div class="modal-footer">
-             <div id="product-list-pagination"></div>
-             <button type="button" id="close-product-mgmt-btn" style="background-color: var(--secondary-color);">ปิด</button>
-        </div>
-    </div>
-</div>
-
-<div id="product-editor-modal" class="modal-overlay">
-    <div class="modal-content">
-        <form id="product-editor-form">
-            <div class="modal-header"><h3 id="product-editor-title">เพิ่มสินค้าใหม่</h3></div>
-            
-            <div class="form-content-area">
-                <div class="form-column-left">
-                    <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">ข้อมูลสินค้าหลัก</h4>
-                    <div class="form-group">
-                        <label for="product-code">รหัสสินค้า (ห้ามซ้ำ)</label>
-                        <input type="text" id="product-code" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-name">ชื่อสินค้า</label>
-                        <input type="text" id="product-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-category">หมวดหมู่ (ไม่บังคับ)</label>
-                        <input type="text" id="product-category">
-                    </div>
-                    <div class="form-group">
-                        <label for="product-base-unit">หน่วยเล็กที่สุด (สำหรับนับสต็อก)</label>
-                        <input type="text" id="product-base-unit" placeholder="เช่น ชิ้น, ขวด, กรัม" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-stock">จำนวนสต็อก (ตามหน่วยเล็กที่สุด)</label>
-                        <input type="number" id="product-stock" value="0" required>
-                    </div>
-                </div>
-
-                <div class="form-column-right">
-                    <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">หน่วยและราคาขาย</h4>
-                    <div id="pricing-units-container"></div>
-                     <button type="button" id="add-pricing-unit-btn">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                         เพิ่มหน่วยขาย
-                       </button>
-                </div>
-            </div>
-
-            <div class="modal-footer">
+            <section class="card" style="height: 100%; box-shadow: none; border: none; padding: 0;">
+                <h2>การตั้งค่าและจัดการ</h2>
                 <div class="button-group">
-                    <button type="button" id="cancel-product-editor-btn" style="background-color: var(--secondary-color);">ยกเลิก</button>
-                    <button type="submit" id="save-product-btn" class="finish-sale">บันทึกสินค้า</button>
+                    <button type="button" id="manage-products-btn" style="background-color: var(--info-color);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        จัดการสินค้า
+                    </button>
+                    <button type="button" id="import-from-sheet-btn" style="background-color: var(--success-color);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                        นำเข้า/อัปเดตจาก Google Sheet
+                    </button>
                 </div>
-            </div>
-        </form>
+                <div style="margin-top: 1rem; display: flex; align-items: center;">
+                    <input type="checkbox" id="auto-import-toggle" style="width: auto; margin-right: 0.5rem;" checked>
+                    <label for="auto-import-toggle">นำเข้าข้อมูลอัตโนมัติเมื่อมีการเปลี่ยนแปลง (ตรวจสอบทุก 5 นาที)</label>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="close-main-modal-btn" style="background-color: var(--secondary-color);">ปิด</button>
+        </div>
     </div>
 </div>
-</div>
+
+
+<!-- Other Modals -->
+<div id="payment-modal" class="modal-overlay"> <div class="modal-content"> <div class="modal-header"><h3>ชำระเงิน</h3></div> <div class="modal-body"> <div class="payment-modal-body"> <div class="payment-row"><span class="payment-label">ยอดสุทธิ</span><span class="payment-amount" id="payment-total-final">0.00</span></div> <div class="payment-row"><label for="cash-received-input" class="payment-label">รับเงินมา</label><input type="number" id="cash-received-input" step="any" placeholder="0.00"></div> <div class="payment-row"><span class="payment-label">เงินทอน</span><span class="payment-amount" id="payment-change">0.00</span></div> </div> </div> <div class="modal-footer"> <div class="button-group"> <button type="button" id="cancel-payment-btn" style="background-color:var(--secondary-color)">ยกเลิก (ESC)</button> <button type="button" id="confirm-sale-btn" class="finish-sale">ยืนยันการขาย (Enter)</button> </div> </div> </div> </div>
+<div id="delete-confirm-modal" class="modal-overlay"> <div class="modal-content"> <div class="modal-header"><h3 style="color:var(--danger-color)">ยืนยันการลบ</h3></div> <div class="modal-body"><p id="delete-confirm-text"></p></div> <div class="modal-footer"> <div class="button-group"> <button type="button" id="cancel-delete-btn" style="background-color:var(--secondary-color)">ยกเลิก</button> <button type="button" id="confirm-delete-btn" class="clear-cart">ยืนยันการลบ</button> </div> </div> </div> </div>
+<div id="clear-options-modal" class="modal-overlay"> <div class="modal-content"> <div class="modal-header"><h3>เลือกวิธีการล้างประวัติ</h3></div> <div class="modal-body"> <p>คุณต้องการล้างประวัติการขายแบบใด?</p> <div class="button-group" style="flex-direction: column; gap: 1rem;"> <button type="button" id="clear-local-btn" class="clear-cart" style="background-color: var(--info-color);">ล้างเฉพาะหน้าเว็บนี้</button> <button type="button" id="clear-db-btn" class="clear-cart">ล้างจากฐานข้อมูล (ถาวร)</button> </div> </div> <div class="modal-footer"> <button type="button" id="cancel-clear-btn" style="background-color: var(--secondary-color);">ยกเลิก</button> </div> </div> </div>
+<div id="info-modal" class="modal-overlay"> <div class="modal-content"> <div class="modal-header"><h3 id="info-modal-title" style="color: var(--primary-color);"></h3></div> <div class="modal-body"><p id="info-modal-text"></p></div> <div class="modal-footer" style="justify-content:center"><button type="button" id="info-modal-ok-btn">ตกลง (Enter/ESC)</button></div> </div> </div>
+<div id="product-mgmt-modal" class="modal-overlay"> <div class="modal-content"> <div class="modal-toolbar"> <h2>จัดการสินค้า</h2> <div class="input-with-icon" style="width: 300px;"> <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span> <input type="text" id="product-search-input" placeholder="ค้นหาสินค้า..."> </div> <button type="button" id="add-new-product-btn" class="finish-sale"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> เพิ่มสินค้าใหม่ </button> </div> <div id="product-list-container"></div> <div class="modal-footer"> <div id="product-list-pagination"></div> <button type="button" id="close-product-mgmt-btn" style="background-color: var(--secondary-color);">ปิด</button> </div> </div> </div>
+<div id="product-editor-modal" class="modal-overlay"> <div class="modal-content"> <form id="product-editor-form"> <div class="modal-header"><h3 id="product-editor-title">เพิ่มสินค้าใหม่</h3></div> <div class="form-content-area"> <div class="form-column-left"> <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">ข้อมูลสินค้าหลัก</h4> <div class="form-group"> <label for="product-code">รหัสสินค้า (ห้ามซ้ำ)</label> <input type="text" id="product-code" required> </div> <div class="form-group"> <label for="product-name">ชื่อสินค้า</label> <input type="text" id="product-name" required> </div> <div class="form-group"> <label for="product-category">หมวดหมู่ (ไม่บังคับ)</label> <input type="text" id="product-category"> </div> <div class="form-group"> <label for="product-base-unit">หน่วยเล็กที่สุด (สำหรับนับสต็อก)</label> <input type="text" id="product-base-unit" placeholder="เช่น ชิ้น, ขวด, กรัม" required> </div> <div class="form-group"> <label for="product-stock">จำนวนสต็อก (ตามหน่วยเล็กที่สุด)</label> <input type="number" id="product-stock" value="0" required> </div> </div> <div class="form-column-right"> <h4 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">หน่วยและราคาขาย</h4> <div id="pricing-units-container"></div> <button type="button" id="add-pricing-unit-btn"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> เพิ่มหน่วยขาย </button> </div> </div> <div class="modal-footer"> <div class="button-group"> <button type="button" id="cancel-product-editor-btn" style="background-color: var(--secondary-color);">ยกเลิก</button> <button type="submit" id="save-product-btn" class="finish-sale">บันทึกสินค้า</button> </div> </div> </form> </div> </div>
 
 <script type="module">
-    // =================================================================================================
-    // CRITICAL SECURITY WARNING
-    // This code contains Firebase configuration details (firebaseConfig) including the 'apiKey'
-    // directly in the client-side script. This is a MAJOR security risk. Anyone viewing the
-    // page source can see your credentials and gain unauthorized access to your database,
-    // potentially leading to data theft, modification, deletion, and high billing costs.
-    //
-    // The CORRECT approach is to move ALL Firebase interaction logic to a secure backend
-    // environment (e.g., using Cloud Functions for Firebase) and expose a secure API for your
-    // frontend to consume. This config is left here only to maintain functionality based on
-    // your request, but it MUST be replaced with a proper backend architecture immediately.
-    // =================================================================================================
+    // Firebase Initialization (Secure Method)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, addDoc, doc, deleteDoc, writeBatch, getDocs, query, where, setDoc, updateDoc, collectionGroup, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDOx9RPxrG-vO59QHjkhJtGmyDRhdoVFPY",
-        authDomain: "pos-6-23035.firebaseapp.com",
-        projectId: "pos-6-23035",
-        storageBucket: "pos-6-23035.appspot.com",
-        messagingSenderId: "1025982856125",
-        appId: "1:1025982856125:web:8c6cdf5712e44abe0f30d4"
-    };
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
     try {
-        const appId = firebaseConfig.projectId;
+        if (!firebaseConfig.apiKey) {
+            throw new Error("Firebase configuration is missing.");
+        }
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         setLogLevel('error');
-        await signInAnonymously(auth);
-        console.log("Signed in anonymously.");
+
         window.firebaseServices = { db, auth, appId, api: { collection, onSnapshot, addDoc, doc, deleteDoc, writeBatch, getDocs, query, where, setDoc, updateDoc, collectionGroup } };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("Firebase Authenticated. User UID:", user.uid);
+                window.dispatchEvent(new CustomEvent('firebase-ready'));
+            } else {
+                 console.log("No user is signed in. Attempting authentication...");
+                 try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } catch (authError) {
+                    console.error("Firebase Authentication Failed:", authError);
+                    window.dispatchEvent(new CustomEvent('firebase-failed', { detail: authError }));
+                }
+            }
+        });
+
     } catch (error) {
         console.error("Firebase Initialization Failed:", error);
-        window.firebaseFailed = true;
-        window.firebaseError = error.message;
-    } finally {
-        window.firebaseReady = true;
+        window.dispatchEvent(new CustomEvent('firebase-failed', { detail: error }));
     }
 </script>
 <script>
@@ -1048,6 +495,7 @@ const POS_APP = {
         thaiToEngMap: { 'ๅ': '1', '/': '2', '-': '3', 'ภ': '4', 'ถ': '5', 'ุ': '6', 'ึ': '7', 'ค': '8', 'ต': '9', 'จ': '0', 'ข': '-', 'ช': '=', 'ๆ': 'q', 'ไ': 'w', 'ำ': 'e', 'พ': 'r', 'ะ': 't', 'ั': 'y', 'ี': 'u', 'ร': 'i', 'น': 'o', 'ย': 'p', 'บ': '[', 'ล': ']', 'ฟ': 'a', 'ห': 's', 'ก': 'd', 'ด': 'f', 'เ': 'g', '้': 'h', '่': 'j', 'า': 'k', 'ส': 'l', 'ว': ';', 'ง': "'", 'ผ': 'z', 'ป': 'x', 'แ': 'c', 'อ': 'v', 'ิ': 'b', 'ท': 'n', 'ม': 'm', 'ใ': ',', 'ฝ': '.', 'ซ': '/' }
     },
     state: {
+        activeOverlay: null, // Can be 'history', 'settings'
         salesHistory: [],
         currentSearchResults: [],
         selectedSearchIndex: -1,
@@ -1066,21 +514,16 @@ const POS_APP = {
         lastSheetHash: null,
         autoImportInterval: null,
         _costCalculationListener: null,
-        productListPage: 1, // New state for pagination
-        productsPerPage: 10, // New state for pagination
+        productListPage: 1,
+        productsPerPage: 10,
     },
 
     init() {
-        const firebaseCheckInterval = setInterval(() => {
-            if (window.firebaseReady) {
-                clearInterval(firebaseCheckInterval);
-                if (window.firebaseFailed) {
-                    this.showInfoModal("ข้อผิดพลาดร้ายแรง", `ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ${window.firebaseError}`, true);
-                    return;
-                }
-                this.start();
-            }
-        }, 100);
+        window.addEventListener('firebase-ready', () => this.start());
+        window.addEventListener('firebase-failed', (event) => {
+            const errorMessage = event.detail?.message || "An unknown error occurred.";
+            this.showInfoModal("ข้อผิดพลาดร้ายแรง", `ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ${errorMessage}`, true);
+        });
     },
     
     start() {
@@ -1094,28 +537,70 @@ const POS_APP = {
         this.listenForProducts();
         this.setupEventListeners();
         this.toggleUIVisibility();  
-        
-        if (document.getElementById('auto-import-toggle').checked) {
-            this.startAutoImportPolling();
-        }
-        
-        document.getElementById('barcode-input').focus();
-    },
-    
-    clearDataOnStart() {
-        this.state.salesHistory = [];
-        this.state.tabs = new Map();
-        this.state.activeTabId = null;
-        if (this.state.unsubscribeSalesHistory) this.state.unsubscribeSalesHistory();
-        this.updateHistoryDisplay();
-        this.calculateSummaryForDisplayedHistory([]);
-        this.renderTabs();
-        const cartItemsEl = document.getElementById('cart-items');
-        if (cartItemsEl) cartItemsEl.innerHTML = '';
-        this.updateCartDisplay();
+        this.setActiveOverlay(null); // Set initial active state for sidebar
+        document.getElementById('barcode-input')?.focus();
     },
 
+    // =================================================================
+    // == UI/VIEW MANAGEMENT LOGIC
+    // =================================================================
+    setActiveOverlay(overlayName) {
+        this.state.activeOverlay = overlayName;
+        document.querySelectorAll('.sidebar-btn').forEach(btn => {
+            if (btn.dataset.view === 'pos') {
+                btn.classList.toggle('active', !overlayName);
+            } else {
+                btn.classList.toggle('active', btn.dataset.view === overlayName);
+            }
+        });
+        if (!overlayName) {
+            document.getElementById('barcode-input')?.focus();
+        }
+    },
+
+    showHistoryModal() {
+        document.getElementById('history-modal').style.display = 'flex';
+        this.setActiveOverlay('history');
+    },
+    hideHistoryModal() {
+        document.getElementById('history-modal').style.display = 'none';
+        this.setActiveOverlay(null);
+    },
+    showSettingsModal() {
+        document.getElementById('settings-modal').style.display = 'flex';
+        this.setActiveOverlay('settings');
+    },
+    hideSettingsModal() {
+        document.getElementById('settings-modal').style.display = 'none';
+        this.setActiveOverlay(null);
+    },
+    
     setupEventListeners() {
+        // --- Sidebar Navigation ---
+        document.getElementById('app-sidebar').addEventListener('click', (e) => {
+            const button = e.target.closest('.sidebar-btn');
+            if (!button) return;
+            const view = button.dataset.view;
+
+            if (view === 'pos') {
+                this.hideHistoryModal();
+                this.hideSettingsModal();
+            } else if (view === 'history') {
+                this.showHistoryModal();
+            } else if (view === 'settings') {
+                this.showSettingsModal();
+            }
+        });
+
+        // --- Main Modal Close Buttons ---
+        document.querySelectorAll('.close-main-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.hideHistoryModal();
+                this.hideSettingsModal();
+            });
+        });
+
+        // --- Existing Event Listeners ---
         document.getElementById('import-from-sheet-btn').addEventListener('click', () => this.importFromGoogleSheet(false));
         const barcodeInput = document.getElementById('barcode-input');
         barcodeInput.addEventListener('input', this.handleInstantSearch.bind(this));
@@ -1125,15 +610,9 @@ const POS_APP = {
         document.getElementById('discount-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.showPaymentModal(); }});
         document.querySelector('.finish-sale').addEventListener('click', this.showPaymentModal.bind(this));
         document.querySelector('.clear-cart').addEventListener('click', this.showClearCartConfirmModal.bind(this));
-        
-        // --- History Filter Event Listeners ---
         document.getElementById('filter-history-btn').addEventListener('click', this.filterHistoryByDateTime.bind(this));
         document.getElementById('today-history-btn').addEventListener('click', this.filterHistoryForToday.bind(this));
-        ['history-search-input'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => this.updateHistoryDisplay());
-        });
-
-
+        document.getElementById('history-search-input').addEventListener('input', () => this.updateHistoryDisplay());
         document.getElementById('export-excel-btn').addEventListener('click', this.exportToExcel.bind(this));
         document.getElementById('clear-all-history-btn').addEventListener('click', this.showClearOptionsModal.bind(this));
         document.getElementById('cash-received-input').addEventListener('input', this.calculateChange.bind(this));
@@ -1155,40 +634,44 @@ const POS_APP = {
         document.getElementById('product-list-container').addEventListener('click', this.handleProductListActions.bind(this));
         document.getElementById('product-editor-modal').addEventListener('click', this.handlePricingUnitActions.bind(this));
         document.getElementById('product-search-input').addEventListener('input', (e) => {
-            this.state.productListPage = 1; // Reset to page 1 on new search
+            this.state.productListPage = 1;
             this.renderProductList(e.target.value);
         });
         document.getElementById('auto-import-toggle').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                this.startAutoImportPolling();
-            } else {
-                this.stopAutoImportPolling();
-            }
+            if (e.target.checked) this.startAutoImportPolling();
+            else this.stopAutoImportPolling();
         });
         document.getElementById('product-editor-form').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-                e.preventDefault();
-            }
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault();
         });
         document.getElementById('confirm-sale-btn').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            this.confirmSale();
-    }
-    });
-    // New Listener for Pagination
-    document.getElementById('product-list-pagination').addEventListener('click', (e) => {
-        const button = e.target.closest('button');
-        if (button && button.dataset.page) {
-            const newPage = parseInt(button.dataset.page, 10);
-            if (newPage !== this.state.productListPage) {
-                this.state.productListPage = newPage;
-                this.renderProductList(document.getElementById('product-search-input').value);
+            if (e.key === 'Enter') { e.preventDefault(); this.confirmSale(); }
+        });
+        document.getElementById('product-list-pagination').addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (button && button.dataset.page) {
+                const newPage = parseInt(button.dataset.page, 10);
+                if (newPage !== this.state.productListPage) {
+                    this.state.productListPage = newPage;
+                    this.renderProductList(document.getElementById('product-search-input').value);
+                }
             }
-        }
-    });
+        });
     },
-    
+
+    // All other functions (clearDataOnStart, _hashText, importFromGoogleSheet, etc.) remain the same
+    clearDataOnStart() {
+        this.state.salesHistory = [];
+        this.state.tabs = new Map();
+        this.state.activeTabId = null;
+        if (this.state.unsubscribeSalesHistory) this.state.unsubscribeSalesHistory();
+        this.updateHistoryDisplay();
+        this.calculateSummaryForDisplayedHistory([]);
+        this.renderTabs();
+        const cartItemsEl = document.getElementById('cart-items');
+        if (cartItemsEl) cartItemsEl.innerHTML = '';
+        this.updateCartDisplay();
+    },
     async _hashText(text) {
         if (!text) return 0;
         let hash = 0;
@@ -1199,7 +682,6 @@ const POS_APP = {
         }
         return hash;
     },
-
     startAutoImportPolling() {
         if (this.state.autoImportInterval) {
             clearInterval(this.state.autoImportInterval);
@@ -1213,7 +695,6 @@ const POS_APP = {
                 
                 const csvText = await response.text();
                 const currentHash = await this._hashText(csvText);
-
                 if (this.state.lastSheetHash && this.state.lastSheetHash !== currentHash) {
                     console.log('Auto-Import: Detected changes. Importing...');
                     this.showInfoModal('อัปเดตอัตโนมัติ', 'ตรวจพบการเปลี่ยนแปลงใน Google Sheet กำลังนำเข้าข้อมูล...');
@@ -1237,7 +718,6 @@ const POS_APP = {
             }
         })();
     },
-
     stopAutoImportPolling() {
         if (this.state.autoImportInterval) {
             clearInterval(this.state.autoImportInterval);
@@ -1245,14 +725,11 @@ const POS_APP = {
             console.log('Auto-Import: Polling stopped.');
         }
     },
-
     importFromGoogleSheet(isAutomatic = false) {
         if (!isAutomatic && !confirm('คุณต้องการนำเข้าข้อมูลจาก Google Sheet หรือไม่?\n\nการกระทำนี้จะใช้ "รหัสสินค้า" ในการค้นหา:\n- "อัปเดต" สินค้าที่มีรหัสตรงกัน\n- "เพิ่ม" สินค้าใหม่ที่ยังไม่มีในระบบ\n(ข้อมูลราคาขายที่ซับซ้อนของเดิมจะไม่ถูกลบ)')) {
             return;
         }
-
         this.showInfoModal("กำลังนำเข้า...", "กำลังดาวน์โหลดข้อมูลจาก Google Sheet กรุณารอสักครู่...");
-
         Papa.parse(this.config.googleSheetUrl, {
             download: true,
             header: true,
@@ -1263,13 +740,10 @@ const POS_APP = {
                     this.showInfoModal("ผิดพลาด", "ไม่พบข้อมูลใน Google Sheet หรือไฟล์อาจมีปัญหา", true);
                     return;
                 }
-
                 try {
                     const { db, api } = window.firebaseServices;
                     const productsCollectionRef = this.getProductsCollectionRef();
-                    
                     this.showInfoModal("กำลังประมวลผล...", "กำลังตรวจสอบข้อมูลสินค้าเดิมในระบบ...");
-
                     const existingProducts = new Map();
                     const snapshot = await api.getDocs(productsCollectionRef);
                     snapshot.forEach(doc => {
@@ -1278,32 +752,25 @@ const POS_APP = {
                             existingProducts.set(product.productCode, { id: doc.id, data: product });
                         }
                     });
-
                     this.showInfoModal("กำลังประมวลผล...", `พบข้อมูล ${sheetData.length} รายการใน Sheet, กำลังเปรียบเทียบและอัปเดต...`);
-                    
                     const batch = api.writeBatch(db);
                     const now = new Date().toISOString();
                     let updatedCount = 0;
                     let addedCount = 0;
-
                     for (const row of sheetData) {
                         const productCode = row['รหัสสินค้า'] ? String(row['รหัสสินค้า']).trim() : '';
                         if (!productCode) continue; 
-
                         const barcode = row['บาร์โค้ด'] ? String(row['บาร์โค้ด']).trim() : '';
                         const existingProductInfo = existingProducts.get(productCode);
-
                         if (existingProductInfo) {
                             const docRef = api.doc(db, productsCollectionRef.path, existingProductInfo.id);
                             const productData = existingProductInfo.data;
                             let unitFound = false;
-
                             productData.pricingUnits = productData.pricingUnits.map(unit => {
                                 if (unit.barcode === barcode) {
                                     unitFound = true;
                                     unit.cost = parseFloat(row['ต้นทุน']) || unit.cost || 0;
                                     unit.defaultPrice = parseFloat(row['ราคา']) || unit.defaultPrice || 0;
-                                    
                                     const baseTier = (unit.priceTiers || []).find(t => t.quantity === 1);
                                     if (baseTier) {
                                         baseTier.price = unit.defaultPrice;
@@ -1315,7 +782,6 @@ const POS_APP = {
                                 }
                                 return unit;
                             });
-
                             if (!unitFound && barcode) {
                                 const defaultPrice = parseFloat(row['ราคา']) || 0;
                                 productData.pricingUnits.push({
@@ -1327,7 +793,6 @@ const POS_APP = {
                                     priceTiers: [{ quantity: 1, price: defaultPrice }]
                                 });
                             }
-
                             batch.update(docRef, {
                                 stockInBaseUnits: parseInt(row['คงเหลือ'], 10) || productData.stockInBaseUnits,
                                 pricingUnits: productData.pricingUnits,
@@ -1337,11 +802,9 @@ const POS_APP = {
                         } else {
                             const productName = row['ชื่อการค้า'] ? String(row['ชื่อการค้า']).trim() : '';
                             if (!productName) continue;
-
                             const newDocRef = api.doc(productsCollectionRef);
                             const unitName = row['หน่วย'] ? String(row['หน่วย']).trim() : 'หน่วย';
                             const defaultPrice = parseFloat(row['ราคา']) || 0;
-
                             const newProductData = {
                                 productCode: productCode,
                                 productName: productName,
@@ -1363,10 +826,8 @@ const POS_APP = {
                             addedCount++;
                         }
                     }
-
                     await batch.commit();
                     this.showInfoModal("สำเร็จ", `นำเข้าข้อมูลเรียบร้อยแล้ว\nอัปเดต ${updatedCount} รายการ, เพิ่มใหม่ ${addedCount} รายการ`);
-
                 } catch (error) {
                     console.error("Error importing data to Firestore:", error);
                     this.showInfoModal("ผิดพลาด", `เกิดข้อผิดพลาดระหว่างนำเข้าข้อมูล: ${error.message}`, true);
@@ -1378,10 +839,8 @@ const POS_APP = {
             }
         });
     },
-
     getSalesHistoryCollectionRef() { const { appId, db, api } = window.firebaseServices; return api.collection(db, `artifacts/${appId}/public/data/salesHistory`); },
     getProductsCollectionRef() { const { appId, db, api } = window.firebaseServices; return api.collection(db, `artifacts/${appId}/public/data/products`); },
-    
     listenForProducts() { 
         const productsCollectionRef = this.getProductsCollectionRef(); 
         if (!productsCollectionRef) return; 
@@ -1397,25 +856,23 @@ const POS_APP = {
             this.showInfoModal("ข้อผิดพลาด", "ไม่สามารถโหลดรายการสินค้าจากฐานข้อมูลได้", true); 
         }); 
     },
-    
     getPriceForQuantity(pricingUnit, quantity) {
         if (!pricingUnit) return 0;
         let applicablePrice = -1;
         if (pricingUnit.priceTiers && pricingUnit.priceTiers.length > 0) {
              const sortedTiers = [...pricingUnit.priceTiers].sort((a, b) => b.quantity - a.quantity);
              for (const tier of sortedTiers) {
-                   if (quantity >= tier.quantity) {
-                         applicablePrice = tier.price;
-                         break;
-                   }
+                 if (quantity >= tier.quantity) {
+                     applicablePrice = tier.price;
+                     break;
+                 }
              }
         }
-        if (applicablePrice < 0) { // Use < 0 to handle price 0 correctly
+        if (applicablePrice < 0) {
             return pricingUnit.defaultPrice || 0;
         }
         return applicablePrice;
     },
-
     prepareSearchableProducts() {
         const flatList = [];
         this.state.productsFromFirestore.forEach(product => {
@@ -1425,6 +882,7 @@ const POS_APP = {
                     const cartItemId = unit.barcode || `${product.id}-${unit.unitName}`;
                     const searchableItem = {
                         productId: product.id,
+                        productCode: product.productCode || '',
                         productName: product.productName,
                         category: product.category || '',
                         baseUnit: product.baseUnit || '',
@@ -1442,7 +900,6 @@ const POS_APP = {
         });
         this.state.searchableProductUnits = flatList;
     },
-    
     async handleSaveProduct(e) {
         e.preventDefault();
         this.state.isSaving = true;
@@ -1453,11 +910,9 @@ const POS_APP = {
             this.state.isSaving = false;
             return;
         }
-
         const pricingUnitCards = document.querySelectorAll('.pricing-unit-card');
         const pricingUnits = [];
         let formIsValid = true;
-
         pricingUnitCards.forEach(card => {
             const priceTierRows = card.querySelectorAll('.price-tier-row');
             let priceTiers = [];
@@ -1470,14 +925,11 @@ const POS_APP = {
                     formIsValid = false;
                 }
             });
-
             if (priceTiers.length === 0) {
                 formIsValid = false;
             }
-
             priceTiers.sort((a, b) => b.quantity - a.quantity);
             const defaultPrice = priceTiers.find(t => t.quantity === 1)?.price || priceTiers[priceTiers.length - 1]?.price || 0;
-
             const unit = {
                 unitName: card.querySelector('input[data-field="unitName"]').value.trim(),
                 barcode: card.querySelector('input[data-field="barcode"]').value.trim(),
@@ -1489,14 +941,11 @@ const POS_APP = {
             if (!unit.unitName) formIsValid = false;
             pricingUnits.push(unit);
         });
-
-
         if (!formIsValid) {
             this.showInfoModal("ข้อมูลไม่ถูกต้อง", "กรุณาตรวจสอบข้อมูลในหน่วยราคาขาย, ต้องมีอย่างน้อย 1 ระดับราคาที่ถูกต้อง", true);
             this.state.isSaving = false;
             return;
         }
-        
         const productData = {
             productCode: productCode,
             productName: productName,
@@ -1506,7 +955,6 @@ const POS_APP = {
             pricingUnits: pricingUnits,
             updatedAt: new Date().toISOString()
         };
-
         try {
             const { api, db } = window.firebaseServices;
             if (this.state.currentEditingProductId) {
@@ -1525,7 +973,6 @@ const POS_APP = {
             this.state.isSaving = false;
         }
     },
-    
     async handleDeleteProduct(productId) { 
         const productToDelete = this.state.productsFromFirestore.find(p => p.id === productId); 
         if (!productToDelete) return; 
@@ -1542,15 +989,13 @@ const POS_APP = {
             } 
         } 
     },
-    
     showProductMgmtModal() { 
         document.getElementById('product-mgmt-modal').style.display = 'flex'; 
         document.getElementById('product-search-input').value = ''; 
-        this.state.productListPage = 1; // Reset to page 1 when opening
+        this.state.productListPage = 1;
         this.renderProductList(); 
     },
     hideProductMgmtModal() { document.getElementById('product-mgmt-modal').style.display = 'none'; },
-    
     showProductEditorModal(product = null) {
         this.state.currentEditingProductId = product ? product.id : null;
         const form = document.getElementById('product-editor-form');
@@ -1558,10 +1003,8 @@ const POS_APP = {
         document.getElementById('product-editor-title').textContent = product ? `แก้ไขสินค้า: ${product.productName}` : 'เพิ่มสินค้าใหม่';
         const unitsContainer = document.getElementById('pricing-units-container');
         unitsContainer.innerHTML = '';
-        
         const productCodeInput = document.getElementById('product-code');
         productCodeInput.disabled = !!product;
-
         if (product) {
             productCodeInput.value = product.productCode || '';
             document.getElementById('product-name').value = product.productName || '';
@@ -1573,26 +1016,20 @@ const POS_APP = {
             this.addPricingUnitRow(); 
         }
         document.getElementById('product-editor-modal').style.display = 'flex';
-
         const container = document.getElementById('pricing-units-container');
         if (this.state._costCalculationListener) {
             container.removeEventListener('input', this.state._costCalculationListener);
         }
-
         this.state._costCalculationListener = (e) => {
             const target = e.target;
             if (!target.matches('input[data-field="cost"], input[data-field="conversionFactor"]')) {
                 return;
             }
-
             const firstCard = container.querySelector('.pricing-unit-card:first-child');
             if (!firstCard) return;
-
             const firstCostInput = firstCard.querySelector('input[data-field="cost"]');
             const baseCost = parseFloat(firstCostInput.value) || 0;
-            
             const changedCard = target.closest('.pricing-unit-card');
-
             if (changedCard === firstCard && target.dataset.field === 'cost') {
                 const allOtherCards = container.querySelectorAll('.pricing-unit-card:not(:first-child)');
                 allOtherCards.forEach(card => {
@@ -1614,16 +1051,11 @@ const POS_APP = {
         };
         container.addEventListener('input', this.state._costCalculationListener);
     },
-
     hideProductEditorModal() { document.getElementById('product-editor-modal').style.display = 'none'; },
-    
-    // ================== START: MODIFIED FUNCTION ==================
     renderProductList(filterText = '') {
         const container = document.getElementById('product-list-container');
         const lowercasedFilter = filterText.toLowerCase().trim();
-        
         let productsToRender = this.state.productsFromFirestore;
-
         if (lowercasedFilter) {
             productsToRender = this.state.productsFromFirestore.filter(p => 
                 (p.productName && p.productName.toLowerCase().includes(lowercasedFilter)) ||
@@ -1631,126 +1063,52 @@ const POS_APP = {
                 (p.category && p.category.toLowerCase().includes(lowercasedFilter))
             );
         }
-
         const totalItems = productsToRender.length;
         const startIndex = (this.state.productListPage - 1) * this.state.productsPerPage;
         const endIndex = startIndex + this.state.productsPerPage;
         const paginatedItems = productsToRender.slice(startIndex, endIndex);
-        
         if (totalItems === 0) {
              if (lowercasedFilter) {
                  container.innerHTML = '<p style="text-align:center; padding: 2rem;">ไม่พบสินค้าที่ตรงกับคำค้นหา</p>';
              } else {
                  container.innerHTML = '<p style="text-align:center; padding: 2rem;">ยังไม่มีสินค้าในระบบ, กด "เพิ่มสินค้าใหม่" หรือ "นำเข้าข้อมูล" เพื่อเริ่มต้น</p>';
              }
-             this.renderPaginationControls(0); // Clear pagination
+             this.renderPaginationControls(0);
              return;
         }
-
-        const headerHTML = `
-            <div class="product-list-row product-list-header"> 
-                <span>ชื่อสินค้า (รหัส)</span> 
-                <span>สต็อก</span> 
-                <span>หน่วยราคา</span> 
-                <span>การกระทำ</span> 
-            </div>`;
-
-        const rowsHTML = paginatedItems.map(p => `
-            <div class="product-list-row"> 
-                <div> 
-                    <strong>${p.productName}</strong> 
-                    <div class="sub-text">${p.productCode || ''}</div> 
-                    <div class="sub-text">${p.category || 'ไม่มีหมวดหมู่'}</div> 
-                </div> 
-                <div class="sub-text">${p.stockInBaseUnits} ${p.baseUnit}</div> 
-                <div class="sub-text">${(p.pricingUnits || []).map(u => `${u.unitName} (${this.getPriceForQuantity(u, 1)}฿)`).join(', ')}</div> 
-                <div> 
-                    <button type="button" class="edit-history-btn" data-action="edit" data-id="${p.id}">แก้ไข</button> 
-                    <button type="button" class="delete-history-btn" data-action="delete" data-id="${p.id}">ลบ</button> 
-                </div> 
-            </div>`).join('');
-        
+        const headerHTML = `<div class="product-list-row product-list-header"><span>ชื่อสินค้า (รหัส)</span><span>สต็อก</span><span>หน่วยราคา</span><span>การกระทำ</span></div>`;
+        const rowsHTML = paginatedItems.map(p => `<div class="product-list-row"><div><strong>${p.productName}</strong><div class="sub-text">${p.productCode || ''}</div><div class="sub-text">${p.category || 'ไม่มีหมวดหมู่'}</div></div><div class="sub-text">${p.stockInBaseUnits} ${p.baseUnit}</div><div class="sub-text">${(p.pricingUnits || []).map(u => `${u.unitName} (${this.getPriceForQuantity(u, 1)}฿)`).join(', ')}</div><div><button type="button" class="edit-history-btn" data-action="edit" data-id="${p.id}">แก้ไข</button><button type="button" class="delete-history-btn" data-action="delete" data-id="${p.id}">ลบ</button></div></div>`).join('');
         container.innerHTML = headerHTML + rowsHTML;
         this.renderPaginationControls(totalItems);
     },
-    // =================== END: MODIFIED FUNCTION ===================
-
-    // ================== START: NEW FUNCTION ==================
     renderPaginationControls(totalItems) {
         const paginationContainer = document.getElementById('product-list-pagination');
         if (!paginationContainer) return;
-
         if (totalItems <= this.state.productsPerPage) {
             paginationContainer.innerHTML = '';
             return;
         }
-
         const totalPages = Math.ceil(totalItems / this.state.productsPerPage);
         const currentPage = this.state.productListPage;
-
         let html = '<div class="pagination-controls">';
-        
-        // Previous Button
         html += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&laquo; ก่อนหน้า</button>`;
-
-        // Page Info
         html += `<span class="pagination-info">หน้า ${currentPage} / ${totalPages}</span>`;
-
-        // Next Button
         html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>ถัดไป &raquo;</button>`;
-        
         html += '</div>';
-
         paginationContainer.innerHTML = html;
     },
-    // =================== END: NEW FUNCTION ===================
-    
     addPricingUnitRow(unitData = null) {
         const container = document.getElementById('pricing-units-container');
         const card = document.createElement('div');
         card.className = 'pricing-unit-card';
-        
         const priceTiers = (unitData && unitData.priceTiers && unitData.priceTiers.length > 0) ? unitData.priceTiers : [{ quantity: 1, price: 0 }];
         const priceTiersHTML = priceTiers.map(tier => this.createPriceTierRowHTML(tier.quantity, tier.price)).join('');
-
-        card.innerHTML = `
-            <div class="pricing-unit-header">
-                <h4>หน่วยขาย</h4>
-                <button type="button" class="delete-item-btn" data-action="remove-unit" title="ลบหน่วยนี้">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                </button>
-            </div>
-            <div class="pricing-unit-grid">
-                <div class="form-group"> <label>ชื่อหน่วย</label> <input type="text" data-field="unitName" placeholder="เช่น ชิ้น, แพ็ค" value="${unitData?.unitName || ''}" required> </div>
-                <div class="form-group"> <label>บาร์โค้ด (ถ้ามี)</label> <input type="text" data-field="barcode" value="${unitData?.barcode || ''}"> </div>
-                <div class="form-group"> <label>ต้นทุน/หน่วยนี้</label> <input type="number" step="any" data-field="cost" value="${unitData?.cost || 0}"> </div>
-                <div class="form-group"> <label>ตัวคูณ (เทียบกับหน่วยเล็ก)</label> <input type="number" step="1" data-field="conversionFactor" placeholder="1 แพ็ค = 6 ชิ้น (ใส่ 6)" value="${unitData?.conversionFactor || 1}" required> </div>
-            </div>
-            <div class="price-tiers-container">
-                <label style="font-weight:bold; font-size: 0.9em;">ราคาขายตามจำนวน</label>
-                <div class="price-tier-header">
-                    <div>ขั้นต่ำ (ชิ้น)</div>
-                    <div>ราคา/หน่วย</div>
-                    <div></div>
-                </div>
-                <div class="price-tiers-list">${priceTiersHTML}</div>
-                <button type="button" class="add-tier-btn" data-action="add-tier"> + เพิ่มระดับราคา</button>
-            </div>
-        `;
+        card.innerHTML = `<div class="pricing-unit-header"><h4>หน่วยขาย</h4><button type="button" class="delete-item-btn" data-action="remove-unit" title="ลบหน่วยนี้"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div><div class="pricing-unit-grid"><div class="form-group"><label>ชื่อหน่วย</label><input type="text" data-field="unitName" placeholder="เช่น ชิ้น, แพ็ค" value="${unitData?.unitName || ''}" required></div><div class="form-group"><label>บาร์โค้ด (ถ้ามี)</label><input type="text" data-field="barcode" value="${unitData?.barcode || ''}"></div><div class="form-group"><label>ต้นทุน/หน่วยนี้</label><input type="number" step="any" data-field="cost" value="${unitData?.cost || 0}"></div><div class="form-group"><label>ตัวคูณ (เทียบกับหน่วยเล็ก)</label><input type="number" step="1" data-field="conversionFactor" placeholder="1 แพ็ค = 6 ชิ้น (ใส่ 6)" value="${unitData?.conversionFactor || 1}" required></div></div><div class="price-tiers-container"><label style="font-weight:bold; font-size: 0.9em;">ราคาขายตามจำนวน</label><div class="price-tier-header"><div>ขั้นต่ำ (ชิ้น)</div><div>ราคา/หน่วย</div><div></div></div><div class="price-tiers-list">${priceTiersHTML}</div><button type="button" class="add-tier-btn" data-action="add-tier">+ เพิ่มระดับราคา</button></div>`;
         container.appendChild(card);
     },
-
     createPriceTierRowHTML(quantity = 1, price = 0) {
-        return `
-            <div class="price-tier-row">
-                <input type="number" class="item-input" data-field="tier-qty" value="${quantity}" min="1" required>
-                <input type="number" class="item-input" data-field="tier-price" value="${price}" min="0" step="any" required>
-                <button type="button" class="delete-item-btn" data-action="remove-tier" title="ลบระดับราคานี้">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>`;
+        return `<div class="price-tier-row"><input type="number" class="item-input" data-field="tier-qty" value="${quantity}" min="1" required><input type="number" class="item-input" data-field="tier-price" value="${price}" min="0" step="any" required><button type="button" class="delete-item-btn" data-action="remove-tier" title="ลบระดับราคานี้"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>`;
     },
-    
     handleAddPricingUnit() {
         const firstUnitCard = document.querySelector('#pricing-units-container .pricing-unit-card');
         let baseCost = 0;
@@ -1762,7 +1120,6 @@ const POS_APP = {
         }
         this.addPricingUnitRow({ cost: baseCost, conversionFactor: 1 });
     },
-
     handlePricingUnitActions(e) { 
         const button = e.target.closest('button'); 
         if (!button) return; 
@@ -1798,59 +1155,74 @@ const POS_APP = {
             this.handleDeleteProduct(id); 
         } 
     },
-    
-    handleInstantSearch(e) { 
-        const query = e.target.value.toLowerCase().trim(); 
-        const quantityPattern = /^(\d+)\s*\*\s*(.+)$/; 
-        const match = query.match(quantityPattern); 
-        let effectiveQuery = match ? match[2].trim() : query; 
-        if (effectiveQuery.length < 1) { 
-            this.state.currentSearchResults = []; 
-            this.state.selectedSearchIndex = -1; 
-            this.displaySearchResults([]); 
-            return; 
-        } 
-        const translatedQuery = this.translateThaiToEng(effectiveQuery); 
-        const queryTerms = translatedQuery.split(' ').filter(term => term.length > 0); 
-        this.state.currentSearchResults = this.state.searchableProductUnits.filter(p => { 
-            return queryTerms.every(term => p._searchableText.includes(term)); 
-        }); 
-        this.state.selectedSearchIndex = this.state.currentSearchResults.length > 0 ? 0 : -1; 
-        this.displaySearchResults(this.state.currentSearchResults); 
+    handleInstantSearch(e) {
+        const query = e.target.value.trim();
+        const quantityPattern = /^(\d+)\s*\*\s*(.+)$/;
+        const match = query.match(quantityPattern);
+        let effectiveQuery = match ? match[2].trim() : query;
+        if (effectiveQuery.length < 1) {
+            this.state.currentSearchResults = [];
+            this.state.selectedSearchIndex = -1;
+            this.displaySearchResults([], '');
+            return;
+        }
+        const translatedQuery = this.translateThaiToEng(effectiveQuery).toLowerCase();
+        const results = this.state.searchableProductUnits.map(p => {
+            let score = 0;
+            const productNameLower = p.productName.toLowerCase();
+            const barcodeLower = p.barcode.toLowerCase();
+            const productCodeLower = p.productCode.toLowerCase();
+            if (barcodeLower && barcodeLower === translatedQuery) { score += 100; }
+            if (productCodeLower && productCodeLower === translatedQuery) { score += 80; }
+            if (productNameLower.startsWith(translatedQuery)) { score += 50; }
+            else if (productNameLower.includes(translatedQuery)) { score += 20; }
+            if (barcodeLower && barcodeLower.includes(translatedQuery)) { score += 10; }
+            if (productCodeLower && productCodeLower.includes(translatedQuery)) { score += 10; }
+            if (score > 0) { return { ...p, score }; }
+            return null;
+        }).filter(Boolean);
+        results.sort((a, b) => {
+            if (b.score !== a.score) { return b.score - a.score; }
+            return a.productName.localeCompare(b.productName);
+        });
+        this.state.currentSearchResults = results;
+        this.state.selectedSearchIndex = results.length > 0 ? 0 : -1;
+        this.displaySearchResults(results, translatedQuery);
     },
-    
-    displaySearchResults(results) { 
-        const resultsContainer = document.getElementById('search-results'); 
-        resultsContainer.innerHTML = ''; 
-        if (results.length > 0) { 
-            resultsContainer.classList.add('has-results'); 
-        } else { 
-            resultsContainer.classList.remove('has-results'); 
-        } 
-        if (results.length === 0) return; 
-        results.forEach((productUnit, index) => { 
-            const itemDiv = document.createElement('div'); 
-            itemDiv.className = 'search-item'; 
-            if (index === this.state.selectedSearchIndex) itemDiv.classList.add('selected'); 
-            itemDiv.innerHTML = `<div><span>${productUnit.display}</span></div><span class="price" style="color:var(--success-color); font-weight:bold;">${parseFloat(productUnit.price).toFixed(2)} ฿</span>`; 
-            itemDiv.onclick = () => { 
-                const inputValue = document.getElementById('barcode-input').value.trim(); 
-                const quantityPattern = /^(\d+)\s*\*\s*(.+)$/; 
-                const match = inputValue.match(quantityPattern); 
-                let quantityToAdd = 1; 
-                if (match) { 
-                    quantityToAdd = parseInt(match[1], 10); 
-                } 
-                this.addToCart(this.state.currentSearchResults[index], quantityToAdd); 
-                document.getElementById('barcode-input').value = ''; 
-                this.state.currentSearchResults = []; 
-                this.state.selectedSearchIndex = -1; 
-                this.displaySearchResults([]); 
-            }; 
-            resultsContainer.appendChild(itemDiv); 
-        }); 
+    displaySearchResults(results, query) {
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '';
+        resultsContainer.classList.toggle('has-results', results.length > 0);
+        if (results.length === 0) return;
+        const queryRegex = query ? new RegExp(`(${this.escapeRegex(query)})`, 'gi') : null;
+        results.slice(0, 20).forEach((productUnit, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'search-item';
+            if (index === this.state.selectedSearchIndex) itemDiv.classList.add('selected');
+            let highlightedDisplay = this.escapeHtml(productUnit.display);
+            if (queryRegex) {
+                highlightedDisplay = highlightedDisplay.replace(queryRegex, '<span class="highlight">$1</span>');
+            }
+            itemDiv.innerHTML = `<div><span>${highlightedDisplay}</span></div><span class="price" style="color:var(--success-color); font-weight:bold;">${parseFloat(productUnit.price).toFixed(2)} ฿</span>`;
+            itemDiv.onclick = () => {
+                const inputValue = document.getElementById('barcode-input').value.trim();
+                const quantityPattern = /^(\d+)\s*\*\s*(.+)$/;
+                const match = inputValue.match(quantityPattern);
+                let quantityToAdd = 1;
+                if (match) {
+                    quantityToAdd = parseInt(match[1], 10);
+                }
+                this.addToCart(this.state.currentSearchResults[index], quantityToAdd);
+                document.getElementById('barcode-input').value = '';
+                this.state.currentSearchResults = [];
+                this.state.selectedSearchIndex = -1;
+                this.displaySearchResults([], '');
+            };
+            resultsContainer.appendChild(itemDiv);
+        });
     },
-    
+    escapeRegex(string) { return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); },
+    escapeHtml(string) { const p = document.createElement("p"); p.textContent = string; return p.innerHTML; },
     addToCart(productUnit, quantityToAdd = 1) { 
         const cart = this.getActiveCart(); 
         if (!cart) return; 
@@ -1864,7 +1236,6 @@ const POS_APP = {
         } 
         this.updateCartDisplay(); 
     },
-    
     updateCartDisplay() {
         const cart = this.getActiveCart();
         const discount = this.getActiveDiscount();
@@ -1884,21 +1255,13 @@ const POS_APP = {
             if (!this.state.isRestrictedMode) { 
                 itemInfoHTML += ` <span class="sub-text">(คงเหลือ: ${stockInThisUnit.toFixed(2)} ${productUnit.pricingUnit.unitName})(ต้นทุน: ${(productUnit.pricingUnit.cost || 0).toFixed(2)})</span>`; 
             }
-            
-            li.innerHTML = `
-                <div class="col-seq">${index + 1}</div>
-                <div class="col-name">${itemInfoHTML}</div>
-                <div class="col-qty"><input type="number" class="item-input" value="${quantity}" onchange="POS_APP.editItemQuantity(${index}, this.value)" onfocus="this.select()"></div>
-                <div class="col-price"><input type="text" class="item-input" value="${currentPrice.toFixed(2)}" disabled></div>
-                <div class="col-total"><input type="text" class="item-input" value="${totalForItem.toFixed(2)}" disabled></div>
-                <div class="col-delete"><button type="button" class="delete-item-btn" onclick="POS_APP.deleteItemFromCart(${index})"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div>`;
+            li.innerHTML = `<div class="col-seq">${index + 1}</div><div class="col-name">${itemInfoHTML}</div><div class="col-qty"><input type="number" class="item-input" value="${quantity}" onchange="POS_APP.editItemQuantity(${index}, this.value)" onfocus="this.select()"></div><div class="col-price"><input type="text" class="item-input" value="${currentPrice.toFixed(2)}" disabled></div><div class="col-total"><input type="text" class="item-input" value="${totalForItem.toFixed(2)}" disabled></div><div class="col-delete"><button type="button" class="delete-item-btn" onclick="POS_APP.deleteItemFromCart(${index})"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div>`;
             cartItemsElement.appendChild(li);
         });
         const total = subtotal - (discount || 0);
         document.getElementById('cart-subtotal').textContent = subtotal.toFixed(2);
         document.getElementById('cart-total').textContent = total.toFixed(2);
     },
-    
     showInfoModal(title, text, isError = false) { 
         const titleEl = document.getElementById('info-modal-title'); 
         const textEl = document.getElementById('info-modal-text'); 
@@ -1947,13 +1310,13 @@ const POS_APP = {
                 this.state.isRestrictedMode = true; 
                 this.toggleUIVisibility(); 
                 document.getElementById('barcode-input').value = ''; 
-                this.displaySearchResults([]); 
+                this.displaySearchResults([], ''); 
                 return; 
             } else if (inputValue === '111111') { 
                 this.state.isRestrictedMode = false; 
                 this.toggleUIVisibility(); 
                 document.getElementById('barcode-input').value = ''; 
-                this.displaySearchResults([]); 
+                this.displaySearchResults([], ''); 
                 return; 
             } 
             const quantityPattern = /^(\d+)\s*\*\s*(.+)$/; 
@@ -1967,7 +1330,7 @@ const POS_APP = {
                 document.getElementById('barcode-input').value = ''; 
                 this.state.currentSearchResults = []; 
                 this.state.selectedSearchIndex = -1; 
-                this.displaySearchResults([]); 
+                this.displaySearchResults([], ''); 
             } else if (this.getActiveCart().length > 0 && inputValue === '') { 
                 document.getElementById('discount-input').focus(); 
                 document.getElementById('discount-input').select(); 
@@ -2009,11 +1372,14 @@ const POS_APP = {
             e.preventDefault(); 
             this.showClearCartConfirmModal(); 
         } else if (e.key === 'Escape') { 
-            if (document.getElementById('payment-modal').style.display === 'flex') { e.preventDefault(); this.hidePaymentModal(); } 
-            if (document.getElementById('delete-confirm-modal').style.display === 'flex') { e.preventDefault(); this.hideDeleteConfirmModal(); } 
-            if (document.getElementById('clear-options-modal').style.display === 'flex') { e.preventDefault(); this.hideClearOptionsModal(); } 
-            if (document.getElementById('product-mgmt-modal').style.display === 'flex') { e.preventDefault(); this.hideProductMgmtModal(); } 
-            if (document.getElementById('product-editor-modal').style.display === 'flex') { e.preventDefault(); this.hideProductEditorModal(); } 
+            if(this.state.activeOverlay) {
+                this.hideHistoryModal();
+                this.hideSettingsModal();
+            } else if (document.getElementById('payment-modal').style.display === 'flex') { e.preventDefault(); this.hidePaymentModal(); } 
+            else if (document.getElementById('delete-confirm-modal').style.display === 'flex') { e.preventDefault(); this.hideDeleteConfirmModal(); } 
+            else if (document.getElementById('clear-options-modal').style.display === 'flex') { e.preventDefault(); this.hideClearOptionsModal(); } 
+            else if (document.getElementById('product-mgmt-modal').style.display === 'flex') { e.preventDefault(); this.hideProductMgmtModal(); } 
+            else if (document.getElementById('product-editor-modal').style.display === 'flex') { e.preventDefault(); this.hideProductEditorModal(); } 
         } 
     },
     navigateSearchResults(direction) { 
@@ -2103,86 +1469,53 @@ const POS_APP = {
             changeEl.style.color = 'var(--danger-color)'; 
         } 
     },
-
     async confirmSale() {
         if (this.state.isSaving) return;
         const collectionRef = this.getSalesHistoryCollectionRef();
-        if (!collectionRef) {
-            this.showInfoModal("ข้อผิดพลาด", "ยังไม่ได้เชื่อมต่อกับฐานข้อมูล กรุณารอสักครู่แล้วลองอีกครั้ง", true);
-            return;
-        }
-    
+        if (!collectionRef) { this.showInfoModal("ข้อผิดพลาด", "ยังไม่ได้เชื่อมต่อกับฐานข้อมูล กรุณารอสักครู่แล้วลองอีกครั้ง", true); return; }
         const tabData = this.state.tabs.get(this.state.activeTabId);
         if (!tabData) return;
-    
         const { cart, discount } = tabData;
         const subtotal = cart.reduce((sum, item) => sum + (this.getPriceForQuantity(item.productUnit.pricingUnit, item.quantity) * item.quantity), 0);
         const finalTotal = subtotal - discount;
         const cashReceived = parseFloat(document.getElementById('cash-received-input').value) || 0;
-    
-        if (cashReceived < finalTotal) {
-            this.showInfoModal("ข้อผิดพลาด", "จำนวนเงินที่รับมาไม่เพียงพอ", true);
-            return;
-        }
-    
+        if (cashReceived < finalTotal) { this.showInfoModal("ข้อผิดพลาด", "จำนวนเงินที่รับมาไม่เพียงพอ", true); return; }
         this.state.isSaving = true;
         const confirmButton = document.getElementById('confirm-sale-btn');
         confirmButton.disabled = true;
-    
         const newSaleId = await this.generateSaleId();
         const saleRecordItems = cart.map(item => {
             const conversionFactor = item.productUnit?.pricingUnit?.conversionFactor || 1;
             const costPerSellingUnit = item.productUnit?.pricingUnit?.cost || 0;
             const costPerBaseUnit = conversionFactor > 0 ? costPerSellingUnit / conversionFactor : 0;
-
             return {
-                cartItemId: item.cartItemId,
-                name: item.productUnit.display,
-                unit: item.productUnit.pricingUnit.unitName,
-                quantity: item.quantity,
-                price: this.getPriceForQuantity(item.productUnit.pricingUnit, item.quantity),
-                cost: costPerSellingUnit,
-                productName: item.productUnit.productName,
-                baseUnit: item.productUnit.baseUnit,
-                conversionFactor: conversionFactor,
-                costPerBaseUnit: costPerBaseUnit
+                cartItemId: item.cartItemId, name: item.productUnit.display, unit: item.productUnit.pricingUnit.unitName,
+                quantity: item.quantity, price: this.getPriceForQuantity(item.productUnit.pricingUnit, item.quantity),
+                cost: costPerSellingUnit, productName: item.productUnit.productName, baseUnit: item.productUnit.baseUnit,
+                conversionFactor: conversionFactor, costPerBaseUnit: costPerBaseUnit
             };
         });
-    
         const saleRecord = {
-            id: newSaleId,
-            timestamp: new Date().toISOString(),
-            items: saleRecordItems,
-            subtotal: subtotal,
-            discount: discount,
-            total: finalTotal,
-            cashReceived: cashReceived,
-            change: cashReceived - finalTotal,
+            id: newSaleId, timestamp: new Date().toISOString(), items: saleRecordItems, subtotal: subtotal,
+            discount: discount, total: finalTotal, cashReceived: cashReceived, change: cashReceived - finalTotal,
         };
-    
         try {
             const { api, db } = window.firebaseServices;
-            
             if (tabData.isEditing && tabData.originalFirestoreId) {
                 const batch = api.writeBatch(db);
                 const oldSaleRef = api.doc(db, collectionRef.path, tabData.originalFirestoreId);
                 const newSaleRef = api.doc(collectionRef);
-    
                 batch.delete(oldSaleRef);
                 batch.set(newSaleRef, saleRecord);
-                
                 await batch.commit();
                 console.log(`Edited sale: Deleted old record ${tabData.originalFirestoreId} and created new one.`);
-    
             } else {
                 await api.addDoc(collectionRef, saleRecord);
             }
-    
             const tabToDelete = this.state.activeTabId;
             document.getElementById('edit-status').style.display = 'none';
             this.hidePaymentModal();
             this.closeTab(tabToDelete, false);
-    
         } catch (e) {
             console.error("Error committing sale: ", e);
             this.showInfoModal("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการบันทึกข้อมูลการขาย!", true);
@@ -2191,57 +1524,32 @@ const POS_APP = {
             confirmButton.disabled = false;
         }
     },
-
     async editSaleRecord(firestoreId) {
-        if (this.state.tabs.size >= 5) {
-            this.showInfoModal("ไม่สามารถแก้ไข", "เปิดบิลครบ 5 บิลแล้ว ไม่สามารถเปิดบิลเพื่อแก้ไขได้", true);
-            return;
-        }
-    
+        if (this.state.tabs.size >= 5) { this.showInfoModal("ไม่สามารถแก้ไข", "เปิดบิลครบ 5 บิลแล้ว ไม่สามารถเปิดบิลเพื่อแก้ไขได้", true); return; }
         const saleToEdit = this.state.salesHistory.find(s => s.firestoreId === firestoreId);
-        if (!saleToEdit) {
-            this.showInfoModal("ผิดพลาด", "ไม่พบข้อมูลการขายที่ต้องการแก้ไข", true);
-            return;
-        }
-    
+        if (!saleToEdit) { this.showInfoModal("ผิดพลาด", "ไม่พบข้อมูลการขายที่ต้องการแก้ไข", true); return; }
         const newCart = [];
         const missingItems = [];
         for (const item of saleToEdit.items) {
             const fullProductUnit = this.state.searchableProductUnits.find(p => p.cartItemId === item.cartItemId);
             if (fullProductUnit) {
-                newCart.push({
-                    cartItemId: item.cartItemId,
-                    productUnit: fullProductUnit,
-                    quantity: item.quantity
-                });
+                newCart.push({ cartItemId: item.cartItemId, productUnit: fullProductUnit, quantity: item.quantity });
             } else {
                 missingItems.push(item.name);
             }
         }
-    
-        if (missingItems.length > 0) {
-            this.showInfoModal("คำเตือน", `ไม่พบสินค้าบางรายการในระบบปัจจุบันและจะไม่ถูกเพิ่มในตะกร้า:\n- ${missingItems.join('\n- ')}`);
-        }
-    
-        if (newCart.length === 0) {
-            this.showInfoModal("ผิดพลาด", "ไม่สามารถนำรายการสินค้าในบิลเก่ามาแก้ไขได้ทั้งหมด", true);
-            return;
-        }
-    
+        if (missingItems.length > 0) { this.showInfoModal("คำเตือน", `ไม่พบสินค้าบางรายการในระบบปัจจุบันและจะไม่ถูกเพิ่มในตะกร้า:\n- ${missingItems.join('\n- ')}`); }
+        if (newCart.length === 0) { this.showInfoModal("ผิดพลาด", "ไม่สามารถนำรายการสินค้าในบิลเก่ามาแก้ไขได้ทั้งหมด", true); return; }
         const tabId = this.addNewSaleTab(`บิลแก้ไข #${saleToEdit.id.slice(-4)}`);
         const tabData = this.state.tabs.get(tabId);
-        
         tabData.cart = newCart;
         tabData.discount = saleToEdit.discount || 0;
         tabData.isEditing = true;
         tabData.originalFirestoreId = firestoreId;
-    
         document.getElementById('edit-status').innerHTML = `กำลังแก้ไขบิล <strong>${saleToEdit.id}</strong>. เมื่อชำระเงิน, บิลเก่าจะถูกลบและสร้างบิลใหม่.`;
         document.getElementById('edit-status').style.display = 'block';
-    
         this.updateCartDisplay();
     },
-
     showDeleteConfirmModal(id, isTab) { 
         const confirmBtn = document.getElementById('confirm-delete-btn'); 
         const confirmText = document.getElementById('delete-confirm-text'); 
@@ -2290,28 +1598,19 @@ const POS_APP = {
             this.showInfoModal("ผิดพลาด", "เกิดข้อผิดพลาดในการล้างประวัติทั้งหมด!", true); 
         } 
     },
-    
     updateHistoryDisplay() {
         const historyBody = document.getElementById('history-body');
         const clearHistoryBtn = document.getElementById('clear-all-history-btn');
         if (!historyBody) return;
-
-        // --- Get all filter values ---
         const searchFilter = document.getElementById('history-search-input').value.toLowerCase().trim();
-
-        // --- Apply all filters ---
         const filteredHistory = this.state.salesHistory.filter(sale => {
             const saleIdMatch = sale.id.toLowerCase().includes(searchFilter);
             const itemMatch = sale.items.some(item => item.name.toLowerCase().includes(searchFilter));
-            const textMatch = searchFilter === '' || saleIdMatch || itemMatch;
-
-            return textMatch;
+            return searchFilter === '' || saleIdMatch || itemMatch;
         });
-
         historyBody.innerHTML = '';
         const now = new Date();
         const startOfCurrentHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
-
         if (filteredHistory.length === 0) {
             historyBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">ไม่พบประวัติการขายที่ตรงกับเงื่อนไข</td></tr>';
         } else {
@@ -2322,79 +1621,48 @@ const POS_APP = {
                     row.classList.add('exported-row');
                     row.title = 'รายการนี้ถูก Export แล้วโดยระบบอัตโนมัติ';
                 }
-
-                // Highlight matching text in item details
                 let itemDetails = sale.items.map(item => {
-                    let name = item.name;
+                    let name = this.escapeHtml(item.name);
                     if (searchFilter && name.toLowerCase().includes(searchFilter)) {
-                        const regex = new RegExp(`(${searchFilter})`, 'gi');
+                        const regex = new RegExp(`(${this.escapeRegex(searchFilter)})`, 'gi');
                         name = name.replace(regex, '<span class="highlight">$1</span>');
                     }
                     return `${name} (x${item.quantity})`;
                 }).join('<br>');
-
                 const discountAmount = sale.discount ? sale.discount.toFixed(2) : '0.00';
                 let actionCellHTML = '';
-
                 if (!this.state.isRestrictedMode) {
                     actionCellHTML = `<button type="button" class="edit-history-btn" onclick="POS_APP.editSaleRecord('${sale.firestoreId}')">แก้ไข</button><button type="button" class="delete-history-btn" onclick="POS_APP.showDeleteConfirmModal('${sale.firestoreId}', false)">ลบ</button>`;
                 }
-                
                 row.innerHTML = `<td>${new Date(sale.timestamp).toLocaleString('th-TH')}</td><td>${sale.id}</td><td>${itemDetails}</td><td>${discountAmount}</td><td><strong>${sale.total.toFixed(2)}</strong></td><td style="white-space: nowrap;">${actionCellHTML}</td>`;
             });
         }
-        
         if(clearHistoryBtn) clearHistoryBtn.disabled = this.state.salesHistory.length === 0;
-
-        // Update summary based on filtered results
         this.calculateSummaryForDisplayedHistory(filteredHistory);
     },
-
     toggleUIVisibility() { 
-        const summarySection = document.getElementById('sales-summary-section'); 
-        const filterSection = document.querySelector('.filter-section'); 
-        if (this.state.isRestrictedMode) { 
-            if (summarySection) summarySection.style.display = 'none'; 
-            if (filterSection) filterSection.style.display = 'none'; 
-        } else { 
-            if (summarySection) summarySection.style.display = 'block'; 
-            // The filter section is now a grid, so we use that display type
-            if (filterSection) filterSection.style.display = 'grid'; 
-        } 
+        const summarySection = document.getElementById('sales-summary-section');
+        if (summarySection) {
+            summarySection.style.display = (this.state.activeOverlay === 'history' && !this.state.isRestrictedMode) ? 'block' : 'none';
+        }
         this.updateHistoryDisplay(); 
         this.updateCartDisplay(); 
     },
-    
     addNewSaleTab(customName = '') {
-        if (this.state.tabs.size >= 5) {
-            this.showInfoModal("ไม่สามารถเปิดบิล", "ไม่สามารถเปิดบิลใหม่ได้เกิน 5 บิล", false);
-            return null;
-        }
-    
+        if (this.state.tabs.size >= 5) { this.showInfoModal("ไม่สามารถเปิดบิล", "ไม่สามารถเปิดบิลใหม่ได้เกิน 5 บิล", false); return null; }
         let tabName = customName;
         if (!tabName) {
             let nextSaleNumber = 1;
             const usedNumbers = Array.from(this.state.tabs.values()).map(t => t.name ? parseInt(t.name.split(' ')[1]) : 0);
-            while(usedNumbers.includes(nextSaleNumber)) {
-                nextSaleNumber++;
-            }
+            while(usedNumbers.includes(nextSaleNumber)) { nextSaleNumber++; }
             tabName = `บิล ${nextSaleNumber}`;
         }
-    
         const tabId = 'sale-' + Date.now();
-        this.state.tabs.set(tabId, {
-            cart: [],
-            discount: 0,
-            name: tabName,
-            isEditing: false, 
-            originalFirestoreId: null, 
-        });
-    
+        this.state.tabs.set(tabId, { cart: [], discount: 0, name: tabName, isEditing: false, originalFirestoreId: null });
         this.renderTabs();
         this.switchTab(tabId);
         return tabId;
     },
-
     switchTab(tabId) { 
         if (!this.state.tabs.has(tabId)) return; 
         this.state.activeTabId = tabId; 
@@ -2402,20 +1670,11 @@ const POS_APP = {
         this.updateCartDisplay(); 
         document.getElementById('barcode-input').focus(); 
     },
-    
     closeTab(tabId, confirm = true) {
         const tabData = this.state.tabs.get(tabId);
         if (!tabData) return;
-    
-        if (tabData.isEditing) {
-            document.getElementById('edit-status').style.display = 'none';
-        }
-    
-        if (confirm && tabData.cart.length > 0) {
-            this.showDeleteConfirmModal(tabId, true);
-            return;
-        }
-    
+        if (tabData.isEditing) { document.getElementById('edit-status').style.display = 'none'; }
+        if (confirm && tabData.cart.length > 0) { this.showDeleteConfirmModal(tabId, true); return; }
         this.state.tabs.delete(tabId);
         if (this.state.activeTabId === tabId) {
             const remainingTabs = Array.from(this.state.tabs.keys());
@@ -2427,7 +1686,6 @@ const POS_APP = {
         }
         this.renderTabs();
     },
-
     renderTabs() { 
         const tabsContainer = document.getElementById('cart-tabs'); 
         if (!tabsContainer) return; 
@@ -2439,18 +1697,13 @@ const POS_APP = {
             tabButton.className = 'tab-button'; 
             tabButton.textContent = data.name; 
             tabButton.onclick = () => self.switchTab(id); 
-            if (id === this.state.activeTabId) { 
-                tabButton.classList.add('active'); 
-            } 
+            if (id === this.state.activeTabId) { tabButton.classList.add('active'); } 
             if (this.state.tabs.size > 1) { 
                 const closeButton = document.createElement('button'); 
                 closeButton.type = 'button';
                 closeButton.className = 'close-tab-btn'; 
                 closeButton.textContent = '×';
-                closeButton.onclick = (e) => { 
-                    e.stopPropagation(); 
-                    self.closeTab(id); 
-                }; 
+                closeButton.onclick = (e) => { e.stopPropagation(); self.closeTab(id); }; 
                 tabButton.appendChild(closeButton); 
             } 
             tabsContainer.appendChild(tabButton); 
@@ -2461,26 +1714,18 @@ const POS_APP = {
         if(tabKeys.length <= 1) return; 
         let currentIndex = tabKeys.indexOf(this.state.activeTabId); 
         currentIndex += direction; 
-        if (currentIndex >= tabKeys.length) { 
-            currentIndex = 0; 
-        } else if (currentIndex < 0) { 
-            currentIndex = tabKeys.length - 1; 
-        } 
+        if (currentIndex >= tabKeys.length) { currentIndex = 0; } 
+        else if (currentIndex < 0) { currentIndex = tabKeys.length - 1; } 
         this.switchTab(tabKeys[currentIndex]); 
     },
     filterHistoryByDateTime() { 
         const startDateInput = document.getElementById('start-date').value; 
         const endDateInput = document.getElementById('end-date').value; 
-        if (!startDateInput || !endDateInput) { 
-            this.showInfoModal("ข้อมูลไม่ครบถ้วน", "กรุณาเลือกทั้งวันที่เริ่มต้นและวันที่สิ้นสุด", false); 
-            return; 
-        } 
+        if (!startDateInput || !endDateInput) { this.showInfoModal("ข้อมูลไม่ครบถ้วน", "กรุณาเลือกทั้งวันที่เริ่มต้นและวันที่สิ้นสุด", false); return; } 
         const startDateTime = new Date(startDateInput);
         startDateTime.setHours(0, 0, 0, 0);
-
         const endDateTime = new Date(endDateInput);
         endDateTime.setHours(23, 59, 59, 999);
-        
         this.loadSalesHistoryFromFirestore(startDateTime.toISOString(), endDateTime.toISOString()); 
     },
     filterHistoryForToday() { 
@@ -2490,17 +1735,13 @@ const POS_APP = {
         todayEnd.setHours(23, 59, 59, 999); 
         document.getElementById('start-date').valueAsDate = todayStart;
         document.getElementById('end-date').valueAsDate = todayEnd;
-        // Reset other filters
         document.getElementById('history-search-input').value = '';
-
         this.loadSalesHistoryFromFirestore(todayStart.toISOString(), todayEnd.toISOString()); 
     },
     loadSalesHistoryFromFirestore(startDate, endDate) { 
         const historyCollectionRef = this.getSalesHistoryCollectionRef(); 
         if (!historyCollectionRef) return; 
-        if (this.state.unsubscribeSalesHistory) { 
-            this.state.unsubscribeSalesHistory(); 
-        } 
+        if (this.state.unsubscribeSalesHistory) { this.state.unsubscribeSalesHistory(); } 
         const { query, where } = window.firebaseServices.api; 
         let q; 
         document.getElementById('summary-title').textContent = `สรุปยอดขาย`; 
@@ -2516,31 +1757,24 @@ const POS_APP = {
             this.updateHistoryDisplay(); 
         }, (error) => { 
             console.error("Error loading sales history:", error); 
-            if (error.code === 'permission-denied') { 
-                this.showInfoModal("ข้อผิดพลาด Firestore", "การเชื่อมต่อ Firestore ล้มเหลว! (permission-denied)", true); 
-            } 
+            if (error.code === 'permission-denied') { this.showInfoModal("ข้อผิดพลาด Firestore", "การเชื่อมต่อ Firestore ล้มเหลว! (permission-denied)", true); } 
         }); 
     },
     calculateSummaryForDisplayedHistory(displayedSales = []) { 
-        let totalSales = 0; 
-        let totalDiscount = 0; 
-        let netSales = 0; 
-        let totalCost = 0; 
+        let totalSales = 0, totalDiscount = 0, netSales = 0, totalCost = 0;
         displayedSales.forEach(sale => { 
             totalSales += sale.subtotal || 0; 
             totalDiscount += sale.discount || 0; 
             netSales += sale.total || 0; 
             if (sale.items && Array.isArray(sale.items)) { 
                 sale.items.forEach(item => { 
-                    const cost = item.cost || 0; 
-                    const quantity = item.quantity || 0; 
-                    totalCost += cost * quantity; 
+                    totalCost += (item.cost || 0) * (item.quantity || 0); 
                 }); 
             } 
         }); 
         const billCount = displayedSales.length; 
         const profit = netSales - totalCost; 
-        const formatCurrency = (number) => number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+        const formatCurrency = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
         document.getElementById('summary-total-sales').textContent = formatCurrency(totalSales); 
         document.getElementById('summary-total-discount').textContent = formatCurrency(totalDiscount); 
         document.getElementById('summary-net-sales').textContent = formatCurrency(netSales); 
@@ -2558,24 +1792,17 @@ const POS_APP = {
         this.state.dailySaleCounter = todaySalesInHistory.length + 1; 
         return `${datePrefix}-${this.state.dailySaleCounter.toString().padStart(4, '0')}`; 
     },
-    
     exportToExcel() {
         const dataToExport = this.state.salesHistory.flatMap(sale =>
             sale.items.map(item => {
-                let productName = item.name;
-                let unit = item.unit;
-                let quantity = item.quantity;
-                let pricePerBaseUnit = 'N/A';
-                let costPerBaseUnit = 'N/A';
-
+                let productName = item.name, unit = item.unit, quantity = item.quantity, pricePerBaseUnit = 'N/A', costPerBaseUnit = 'N/A';
                 if (item.conversionFactor && item.baseUnit) {
                     productName = item.productName;
                     unit = item.baseUnit;
                     quantity = item.quantity * item.conversionFactor;
                     pricePerBaseUnit = (item.price / item.conversionFactor).toFixed(4);
                     costPerBaseUnit = (item.costPerBaseUnit || 0).toFixed(4);
-                }
-                else {
+                } else {
                     const fullProductUnit = this.state.searchableProductUnits.find(p => p.cartItemId === item.cartItemId);
                     if (fullProductUnit && fullProductUnit.pricingUnit) {
                         const conversionFactor = fullProductUnit.pricingUnit.conversionFactor || 1;
@@ -2587,36 +1814,19 @@ const POS_APP = {
                         costPerBaseUnit = (costPerSellingUnit / conversionFactor).toFixed(4);
                     }
                 }
-
                 return {
-                    'รหัสการขาย': sale.id,
-                    'วันที่': new Date(sale.timestamp).toLocaleDateString('th-TH'),
-                    'เวลา': new Date(sale.timestamp).toLocaleTimeString('th-TH'),
-                    'ยอดรวมก่อนลด': sale.subtotal ? sale.subtotal.toFixed(2) : '0.00',
-                    'ส่วนลด': sale.discount ? sale.discount.toFixed(2) : '0.00',
-                    'ยอดสุทธิ': sale.total ? sale.total.toFixed(2) : '0.00',
-                    'สินค้า': productName,
-                    'หน่วย': unit,
-                    'จำนวน (หน่วยเล็กที่สุด)': quantity,
-                    'มูลค่ารวม (รายการนี้)': (item.price * item.quantity).toFixed(2),
-                    'ราคาต่อหน่วยเล็กที่สุด': pricePerBaseUnit,
-                    'ต้นทุนต่อหน่วยเล็กที่สุด': costPerBaseUnit
+                    'รหัสการขาย': sale.id, 'วันที่': new Date(sale.timestamp).toLocaleDateString('th-TH'), 'เวลา': new Date(sale.timestamp).toLocaleTimeString('th-TH'),
+                    'ยอดรวมก่อนลด': sale.subtotal ? sale.subtotal.toFixed(2) : '0.00', 'ส่วนลด': sale.discount ? sale.discount.toFixed(2) : '0.00',
+                    'ยอดสุทธิ': sale.total ? sale.total.toFixed(2) : '0.00', 'สินค้า': productName, 'หน่วย': unit, 'จำนวน (หน่วยเล็กที่สุด)': quantity,
+                    'มูลค่ารวม (รายการนี้)': (item.price * item.quantity).toFixed(2), 'ราคาต่อหน่วยเล็กที่สุด': pricePerBaseUnit, 'ต้นทุนต่อหน่วยเล็กที่สุด': costPerBaseUnit
                 };
             })
         );
-
-        if (dataToExport.length === 0) {
-            this.showInfoModal("ไม่มีข้อมูล", "ไม่มีข้อมูลประวัติการขายให้ Export", false);
-            return;
-        }
-
+        if (dataToExport.length === 0) { this.showInfoModal("ไม่มีข้อมูล", "ไม่มีข้อมูลประวัติการขายให้ Export", false); return; }
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'ประวัติการขาย (หน่วยเล็ก)');
-        worksheet['!cols'] = [
-            { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-            { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }
-        ];
+        worksheet['!cols'] = [ { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 } ];
         XLSX.writeFile(workbook, `pos-history-base-units-${new Date().toISOString().split('T')[0]}.xlsx`);
     },
 };
@@ -2628,5 +1838,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 </body>
-
 </html>
+" and want to make some changes to it. I'm thinking of this: "จากโค้ดล่าสุด อยากให้ปรับสีของโปรแกรมให้เป็นโทนสีเขียว-ท
