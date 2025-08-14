@@ -42,7 +42,7 @@
 
         /* --- Sidebar --- */
         #app-sidebar {
-            width: 15%;
+            width: 10%; /* ADJUSTED: Changed from 15% to 10% */
             background-color: var(--white-color);
             border-right: 1px solid var(--border-color);
             padding: var(--gap) 0;
@@ -86,7 +86,7 @@
 
         /* --- Main Content --- */
         #main-pos-layout {
-            width: 85%;
+            width: 90%; /* ADJUSTED: Changed from 85% to 90% */
             display: flex;
             gap: var(--gap);
             padding: var(--gap);
@@ -95,10 +95,10 @@
         }
 
         .search-column {
-            width: calc(25% / 85% * 100%);
+            width: calc(25% / 90% * 100%); /* ADJUSTED: Relative width calculation */
         }
         .cart-column {
-            width: calc(60% / 85% * 100%);
+            width: calc(65% / 90% * 100%); /* ADJUSTED: Relative width calculation */
         }
         
         .card {
